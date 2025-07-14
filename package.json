@@ -47,7 +47,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "GPL-3.0",
   "dependencies": {
     "@openzeppelin/contracts": "^3.4.1",
     "@truffle/contract": "^4.0.39",

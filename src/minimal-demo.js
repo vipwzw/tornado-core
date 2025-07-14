@@ -6,7 +6,7 @@ const circomlib = require('circomlib')
 const merkleTree = require('fixed-merkle-tree')
 const Web3 = require('web3')
 const buildGroth16 = require('websnark/src/groth16')
-const websnarkUtils = require('websnark/src/utils')
+const websnarkUtils = require('../test/websnark-utils')
 const { toWei } = require('web3-utils')
 
 let web3, contract, netId, circuit, proving_key, groth16
