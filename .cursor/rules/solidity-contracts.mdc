@@ -1,0 +1,35 @@
+---
+globs: *.sol
+---
+
+# Solidity Contract Guidelines
+
+## Contract Architecture
+
+This project follows the Tornado protocol architecture with the following key contracts:
+
+- **Base Contract**: [Tornado.sol](mdc:contracts/Tornado.sol) - Abstract base contract with core functionality
+- **ETH Implementation**: [ETHTornado.sol](mdc:contracts/ETHTornado.sol) - ETH-specific tornado mixer
+- **ERC20 Implementation**: [ERC20Tornado.sol](mdc:contracts/ERC20Tornado.sol) - ERC20 token mixer
+- **Merkle Tree**: [MerkleTreeWithHistory.sol](mdc:contracts/MerkleTreeWithHistory.sol) - On-chain merkle tree with history
+
+## Key Patterns
+
+- **Privacy First**: All contracts implement zero-knowledge proof verification
+- **Merkle Tree Storage**: Uses incremental merkle trees for efficient proof verification
+- **Commitment/Nullifier**: Uses commitment-nullifier scheme for privacy
+- **Verifier Integration**: Integrates with [Verifier.sol](mdc:contracts/Verifier.sol) for zk-proof verification
+
+## Security Considerations
+
+- All deposits create commitments in the merkle tree
+- Withdrawals require valid nullifier proofs
+- Relayer support for anonymity
+- Proper access controls and reentrancy protection
+
+## Testing
+
+Corresponding tests are in the `test/` directory:
+- [ETHTornado.test.js](mdc:test/ETHTornado.test.js)
+- [ERC20Tornado.test.js](mdc:test/ERC20Tornado.test.js)
+- [MerkleTreeWithHistory.test.js](mdc:test/MerkleTreeWithHistory.test.js)
