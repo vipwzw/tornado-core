@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📚 Documentation
+    url: https://github.com/tornadocash/tornado-core/blob/master/README.md
+    about: Check the documentation for setup instructions and usage examples
+  - name: 💬 Community Discussion
+    url: https://github.com/tornadocash/tornado-core/discussions
+    about: Join the community discussion for questions and general support
+  - name: 🔒 Security Issues
+    url: https://github.com/tornadocash/tornado-core/security/policy
+    about: Please report security vulnerabilities through our security policy
+  - name: 📖 Developer Resources
+    url: https://docs.tornado.cash
+    about: Browse our developer documentation and API references

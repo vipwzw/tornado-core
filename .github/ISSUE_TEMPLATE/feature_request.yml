@@ -1,0 +1,131 @@
+name: ✨ Feature Request
+description: Suggest a new feature or enhancement
+title: "[FEATURE] "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new feature! Please provide as much detail as possible to help us understand your request.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: 🌟 Feature Summary
+      description: A brief summary of the feature you'd like to see
+      placeholder: What feature would you like to see added?
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: 🎯 Motivation
+      description: Why do you need this feature? What problem does it solve?
+      placeholder: Explain the problem this feature would solve...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: 💡 Proposed Solution
+      description: Describe the solution you'd like to see
+      placeholder: How do you think this should work?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 🔄 Alternatives Considered
+      description: Describe any alternative solutions or features you've considered
+      placeholder: What other approaches have you thought about?
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: 🧩 Component
+      description: Which component would this feature affect?
+      options:
+        - Smart Contracts
+        - Circuits (ZK Proofs)
+        - CLI Tool
+        - Build System
+        - Documentation
+        - Testing
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 📊 Priority
+      description: How important is this feature to you?
+      options:
+        - Low - Nice to have
+        - Medium - Would be helpful
+        - High - Important for my use case
+        - Critical - Blocking my work
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: breaking
+    attributes:
+      label: 💥 Breaking Changes
+      description: Would this feature introduce breaking changes?
+      options:
+        - label: This feature might introduce breaking changes
+        - label: This feature affects the public API
+        - label: This feature affects existing contract interfaces
+
+  - type: checkboxes
+    id: security
+    attributes:
+      label: 🔒 Security Considerations
+      description: Are there any security aspects to consider?
+      options:
+        - label: This feature involves cryptographic operations
+        - label: This feature affects fund safety
+        - label: This feature requires security review
+
+  - type: textarea
+    id: implementation
+    attributes:
+      label: 🛠️ Implementation Ideas
+      description: Do you have ideas about how this could be implemented?
+      placeholder: Any thoughts on implementation details?
+
+  - type: textarea
+    id: testing
+    attributes:
+      label: 🧪 Testing Strategy
+      description: How should this feature be tested?
+      placeholder: What kind of tests would be needed?
+
+  - type: textarea
+    id: documentation
+    attributes:
+      label: 📚 Documentation Needs
+      description: What documentation would be needed for this feature?
+      placeholder: What docs should be updated or created?
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: 📎 Additional Context
+      description: Add any other context, mockups, or examples about the feature request
+      placeholder: Any additional information, links, or examples...
+
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: ✅ Confirmation
+      description: Please confirm the following
+      options:
+        - label: I have searched existing issues to ensure this is not a duplicate
+          required: true
+        - label: I have provided sufficient detail for the team to understand the request
+          required: true

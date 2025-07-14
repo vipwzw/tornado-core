@@ -1,0 +1,85 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-release:
+    name: Build and Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Download ceremony keys
+        run: yarn download
+
+      - name: Build circuits
+        run: npm run build:circuit
+
+      - name: Build contracts
+        run: npm run build:contract
+
+      - name: Build browser bundle
+        run: npm run build:browserify
+
+      - name: Generate contract flattened files
+        run: npm run flat
+
+      - name: Create build archive
+        run: |
+          mkdir -p release-artifacts
+          tar -czf release-artifacts/tornado-core-circuits.tar.gz build/circuits/
+          tar -czf release-artifacts/tornado-core-contracts.tar.gz build/contracts/
+          cp index.js release-artifacts/tornado-core-cli.js
+          cp *_flat.sol release-artifacts/ || true
+
+      - name: Extract release notes
+        id: extract-notes
+        run: |
+          if [ -f CHANGELOG.md ]; then
+            # Extract notes for this version from CHANGELOG.md
+            awk '/^## \['"${GITHUB_REF#refs/tags/}"'\]/{flag=1; next} /^## \[/{flag=0} flag' CHANGELOG.md > release-notes.md
+          else
+            echo "Release ${GITHUB_REF#refs/tags/}" > release-notes.md
+            echo "" >> release-notes.md
+            echo "Automated release created from tag ${GITHUB_REF#refs/tags/}" >> release-notes.md
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: release-artifacts/*
+          body_path: release-notes.md
+          draft: false
+          prerelease: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') || contains(github.ref, 'rc') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Telegram Release Notification
+        uses: appleboy/telegram-action@v1.0.1
+        with:
+          message: |
+            🎉 New release published for [${{ github.repository }}](https://github.com/${{ github.repository }})
+
+            🏷️ Version: ${{ github.ref_name }}
+            📦 [Download Assets](https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }})
+
+            Built with ❤️ by the Tornado Core team
+          format: markdown
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
