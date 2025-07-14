@@ -63,16 +63,16 @@ npm run ci:coverage   # 覆盖率分析
 
 #### 脚本选项说明
 
-| 选项 | 说明 |
-|------|------|
-| `--skip-setup` | 跳过环境设置 |
-| `--skip-build` | 跳过构建过程 |
-| `--skip-tests` | 跳过测试执行 |
-| `--skip-lint` | 跳过代码检查 |
-| `--skip-security` | 跳过安全审计 |
-| `--coverage` | 运行覆盖率分析 |
-| `--verbose` | 显示详细输出 |
-| `--help` | 显示帮助信息 |
+| 选项              | 说明           |
+| ----------------- | -------------- |
+| `--skip-setup`    | 跳过环境设置   |
+| `--skip-build`    | 跳过构建过程   |
+| `--skip-tests`    | 跳过测试执行   |
+| `--skip-lint`     | 跳过代码检查   |
+| `--skip-security` | 跳过安全审计   |
+| `--coverage`      | 运行覆盖率分析 |
+| `--verbose`       | 显示详细输出   |
+| `--help`          | 显示帮助信息   |
 
 ### 🐳 Docker 方式
 
@@ -126,11 +126,13 @@ act                  # 运行所有任务
 ### 📝 开发时
 
 1. **首次设置**
+
    ```bash
    make install
    ```
 
 2. **开发过程中**
+
    ```bash
    # 快速检查（每次提交前）
    make check
@@ -140,6 +142,7 @@ act                  # 运行所有任务
    ```
 
 3. **准备推送时**
+
    ```bash
    # 完整测试
    make ci
@@ -215,6 +218,7 @@ make ci-coverage
 ### 常见问题
 
 1. **Ganache 端口冲突**
+
    ```bash
    # 查找占用端口的进程
    lsof -i :8545
@@ -227,6 +231,7 @@ make ci-coverage
    ```
 
 2. **依赖安装失败**
+
    ```bash
    # 清理并重新安装
    make emergency-clean
@@ -234,6 +239,7 @@ make ci-coverage
    ```
 
 3. **电路构建失败**
+
    ```bash
    # 清理电路缓存
    rm -rf build/circuits
@@ -249,6 +255,7 @@ make ci-coverage
 ### 调试技巧
 
 1. **启用详细输出**
+
    ```bash
    make ci VERBOSE=true
    # 或
@@ -256,6 +263,7 @@ make ci-coverage
    ```
 
 2. **分步调试**
+
    ```bash
    # 只运行特定步骤
    make lint
@@ -264,6 +272,7 @@ make ci-coverage
    ```
 
 3. **查看日志**
+
    ```bash
    # Ganache 日志
    tail -f ganache.log
@@ -290,12 +299,14 @@ make status && make validate
 ### 缓存策略
 
 1. **依赖缓存**
+
    ```bash
    # 使用 yarn 缓存
    yarn install --prefer-offline
    ```
 
 2. **电路缓存**
+
    ```bash
    # 电路构建结果会自动缓存
    # 手动清理缓存
@@ -318,10 +329,12 @@ parallel ::: "make lint" "make build" "npm audit"
 ## 🔒 安全注意事项
 
 1. **私钥安全**
+
    - 永远不要在 CI 中使用真实私钥
    - 使用测试网络和测试私钥
 
 2. **依赖安全**
+
    ```bash
    # 定期安全审计
    npm audit

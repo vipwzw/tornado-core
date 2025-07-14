@@ -1,13 +1,24 @@
 {
   "extends": "solhint:recommended",
   "rules": {
-    "prettier/prettier": [
-      "error",
-      {
-        "printWidth": 110
-      }
-    ],
-    "quotes": ["error", "double"]
-  },
-  "plugins": ["prettier"]
+    "quotes": ["error", "double"],
+    "max-line-length": ["warn", 120],
+    "compiler-version": ["warn", "^0.7.0"],
+    "use-natspec": ["warn"],
+    "func-visibility": ["warn"],
+    "state-visibility": ["warn"],
+    "no-global-import": ["warn"],
+    "reason-string": ["warn"],
+    "gas-small-strings": ["warn"],
+    "immutable-vars-naming": ["warn"],
+    "func-name-mixedcase": ["warn"],
+    "var-name-mixedcase": ["warn"],
+    "contract-name-capwords": ["warn"],
+    "gas-increment-by-one": ["warn"],
+    "gas-indexed-events": ["warn"],
+    "gas-strict-inequalities": ["warn"],
+    "interface-starts-with-i": ["warn"],
+    "one-contract-per-file": ["warn"],
+    "no-inline-assembly": ["warn"]
+  }
 }

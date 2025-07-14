@@ -8,7 +8,7 @@ const ETHTornado = artifacts.require('./ETHTornado.sol')
 const ERC20Tornado = artifacts.require('./ERC20Tornado.sol')
 const BadRecipient = artifacts.require('./BadRecipient.sol')
 const ERC20Mock = artifacts.require('./ERC20Mock.sol')
-const IUSDT = artifacts.require('./IUSDT.sol')
+// const IUSDT = artifacts.require('./IUSDT.sol')
 
 contract('Security Tests', (accounts) => {
   let ethTornado
@@ -20,7 +20,7 @@ contract('Security Tests', (accounts) => {
   const sender = accounts[0]
   const attacker = accounts[1]
   const relayer = accounts[2]
-  const { ETH_AMOUNT, TOKEN_AMOUNT, MERKLE_TREE_HEIGHT } = process.env
+  const { ETH_AMOUNT, TOKEN_AMOUNT /* MERKLE_TREE_HEIGHT */ } = process.env
   const value = ETH_AMOUNT || '1000000000000000000' // 1 ether
   const tokenAmount = TOKEN_AMOUNT || '1000000000000000000'
 
@@ -32,14 +32,14 @@ contract('Security Tests', (accounts) => {
     snapshotId = await takeSnapshot()
   })
 
-    describe('Reentrancy Attack Protection', () => {
+  describe('Reentrancy Attack Protection', () => {
     it('should prevent reentrancy attacks on ETH withdrawal', async () => {
       // This test verifies the ReentrancyGuard protection
       const commitment = '0x0000000000000000000000000000000000000000000000000000000000000001'
 
       await ethTornado.deposit(commitment, {
         value,
-        from: sender
+        from: sender,
       })
 
       // Attempt to trigger reentrancy would fail due to ReentrancyGuard
@@ -48,25 +48,25 @@ contract('Security Tests', (accounts) => {
         // This would fail before reaching the reentrancy attempt
         await ethTornado.withdraw(
           randomHex(256), // Invalid proof
-          randomHex(32),  // root
-          randomHex(32),  // nullifierHash
+          randomHex(32), // root
+          randomHex(32), // nullifierHash
           badRecipient.address, // recipient that attempts reentrancy
           relayer,
           '100000000000000000', // fee
           '0', // refund
-          { from: relayer }
+          { from: relayer },
         )
         throw new Error('Should have failed on invalid proof')
       } catch (error) {
         // Accept either error message as both indicate failed withdrawal
         const errorMessage = error.reason || error.message || ''
         const acceptableErrors = ['Invalid withdraw proof', 'Cannot find your merkle root']
-        const hasAcceptableError = acceptableErrors.some(msg => errorMessage.includes(msg))
+        const hasAcceptableError = acceptableErrors.some((msg) => errorMessage.includes(msg))
         hasAcceptableError.should.be.true
       }
     })
 
-        it('should prevent reentrancy attacks on ERC20 withdrawal', async () => {
+    it('should prevent reentrancy attacks on ERC20 withdrawal', async () => {
       const commitment = '0x0000000000000000000000000000000000000000000000000000000000000002'
 
       await token.mint(sender, tokenAmount)
@@ -77,20 +77,20 @@ contract('Security Tests', (accounts) => {
       try {
         await erc20Tornado.withdraw(
           randomHex(256), // Invalid proof
-          randomHex(32),  // root
-          randomHex(32),  // nullifierHash
+          randomHex(32), // root
+          randomHex(32), // nullifierHash
           badRecipient.address, // recipient
           relayer,
           '100000000000000000', // fee
           '1000000000000000000', // refund
-          { value: '1000000000000000000', from: relayer }
+          { value: '1000000000000000000', from: relayer },
         )
         throw new Error('Should have failed on invalid proof')
       } catch (error) {
         // Accept either error message as both indicate failed withdrawal
         const errorMessage = error.reason || error.message || ''
         const acceptableErrors = ['Invalid withdraw proof', 'Cannot find your merkle root']
-        const hasAcceptableError = acceptableErrors.some(msg => errorMessage.includes(msg))
+        const hasAcceptableError = acceptableErrors.some((msg) => errorMessage.includes(msg))
         hasAcceptableError.should.be.true
       }
     })
@@ -109,7 +109,7 @@ contract('Security Tests', (accounts) => {
         try {
           await ethTornado.deposit(commitment, {
             value,
-            from: sender
+            from: sender,
           })
           throw new Error(`Should have rejected commitment: ${commitment}`)
         } catch (error) {
@@ -119,20 +119,23 @@ contract('Security Tests', (accounts) => {
       }
     })
 
-        it('should reject zero value deposits for ETH', async () => {
+    it('should reject zero value deposits for ETH', async () => {
       const commitment = '0x0000000000000000000000000000000000000000000000000000000000000003'
 
       try {
         await ethTornado.deposit(commitment, {
           value: '0',
-          from: sender
+          from: sender,
         })
         throw new Error('Should have rejected zero value deposit')
       } catch (error) {
         // Accept either error message as both indicate invalid ETH amount
         const errorMessage = error.reason || error.message || ''
-        const acceptableErrors = ['incorrect ETH amount', 'Please send `mixDenomination` ETH along with transaction']
-        const hasAcceptableError = acceptableErrors.some(msg => errorMessage.includes(msg))
+        const acceptableErrors = [
+          'incorrect ETH amount',
+          'Please send `mixDenomination` ETH along with transaction',
+        ]
+        const hasAcceptableError = acceptableErrors.some((msg) => errorMessage.includes(msg))
         hasAcceptableError.should.be.true
       }
     })
@@ -144,14 +147,17 @@ contract('Security Tests', (accounts) => {
       try {
         await ethTornado.deposit(commitment, {
           value: wrongValue.toString(),
-          from: sender
+          from: sender,
         })
         throw new Error('Should have rejected incorrect ETH amount')
       } catch (error) {
         // Accept either error message as both indicate invalid ETH amount
         const errorMessage = error.reason || error.message || ''
-        const acceptableErrors = ['incorrect ETH amount', 'Please send `mixDenomination` ETH along with transaction']
-        const hasAcceptableError = acceptableErrors.some(msg => errorMessage.includes(msg))
+        const acceptableErrors = [
+          'incorrect ETH amount',
+          'Please send `mixDenomination` ETH along with transaction',
+        ]
+        const hasAcceptableError = acceptableErrors.some((msg) => errorMessage.includes(msg))
         hasAcceptableError.should.be.true
       }
     })
@@ -171,14 +177,18 @@ contract('Security Tests', (accounts) => {
           relayer,
           maxUint256, // Max fee
           '0',
-          { from: relayer }
+          { from: relayer },
         )
         throw new Error('Should have failed on invalid proof')
       } catch (error) {
         // Accept various fee-related error messages
         const errorMessage = error.reason || error.message || ''
-        const acceptableErrors = ['Invalid withdraw proof', 'Fee exceeds transfer value', 'Cannot find your merkle root']
-        const hasAcceptableError = acceptableErrors.some(msg => errorMessage.includes(msg))
+        const acceptableErrors = [
+          'Invalid withdraw proof',
+          'Fee exceeds transfer value',
+          'Cannot find your merkle root',
+        ]
+        const hasAcceptableError = acceptableErrors.some((msg) => errorMessage.includes(msg))
         hasAcceptableError.should.be.true
       }
     })
@@ -195,7 +205,7 @@ contract('Security Tests', (accounts) => {
           relayer,
           largeFee.toString(),
           '0',
-          { from: relayer }
+          { from: relayer },
         )
         throw new Error('Should have failed on invalid proof or fee')
       } catch (error) {
@@ -233,7 +243,7 @@ contract('Security Tests', (accounts) => {
     })
   })
 
-    describe('Front-running Protection', () => {
+  describe('Front-running Protection', () => {
     it('should maintain privacy even with front-running attempts', async () => {
       const commitment1 = '0x0000000000000000000000000000000000000000000000000000000000000009'
       const commitment2 = '0x000000000000000000000000000000000000000000000000000000000000000a'
@@ -242,13 +252,13 @@ contract('Security Tests', (accounts) => {
       const tx1 = ethTornado.deposit(commitment1, {
         value,
         from: accounts[3],
-        gasPrice: '20000000000' // Higher gas price
+        gasPrice: '20000000000', // Higher gas price
       })
 
       const tx2 = ethTornado.deposit(commitment2, {
         value,
         from: accounts[4],
-        gasPrice: '10000000000' // Lower gas price
+        gasPrice: '10000000000', // Lower gas price
       })
 
       const [result1, result2] = await Promise.all([tx1, tx2])
@@ -265,13 +275,13 @@ contract('Security Tests', (accounts) => {
     })
   })
 
-    describe('Gas Limit Attacks', () => {
+  describe('Gas Limit Attacks', () => {
     it('should handle operations within reasonable gas limits', async () => {
       const commitment = '0x000000000000000000000000000000000000000000000000000000000000000b'
 
       const gasEstimate = await ethTornado.deposit.estimateGas(commitment, {
         value,
-        from: sender
+        from: sender,
       })
 
       // Should not require excessive gas
@@ -282,10 +292,10 @@ contract('Security Tests', (accounts) => {
       // Test that operations complete deterministically
       const commitment = '0x000000000000000000000000000000000000000000000000000000000000000c'
 
-            const tx = await ethTornado.deposit(commitment, {
+      const tx = await ethTornado.deposit(commitment, {
         value,
         from: sender,
-        gas: 1000000 // Sufficient but not excessive (adjusted for merkle operations)
+        gas: 1000000, // Sufficient but not excessive (adjusted for merkle operations)
       })
 
       tx.receipt.status.should.be.true
@@ -293,7 +303,7 @@ contract('Security Tests', (accounts) => {
     })
   })
 
-    describe('Edge Case Handling', () => {
+  describe('Edge Case Handling', () => {
     it('should handle contract balance edge cases', async () => {
       const initialBalance = await web3.eth.getBalance(ethTornado.address)
 
@@ -339,7 +349,7 @@ contract('Security Tests', (accounts) => {
       name.should.be.equal('DAIMock')
     })
 
-    it('should handle non-standard token interfaces gracefully', async () => {
+    it('should handle non-standard token interfaces gracefully', () => {
       // Test that the contract can interface with different token standards
       // This verifies the contract doesn't break with tokens like USDT
 

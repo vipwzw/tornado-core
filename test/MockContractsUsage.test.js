@@ -8,11 +8,11 @@ const { takeSnapshot, revertSnapshot } = require('../scripts/ganacheHelper')
 const ERC20Mock = artifacts.require('./ERC20Mock.sol')
 const BadRecipient = artifacts.require('./BadRecipient.sol')
 const MerkleTreeWithHistoryMock = artifacts.require('./MerkleTreeWithHistoryMock.sol')
-const IUSDT = artifacts.require('./IUSDT.sol')
-const IDeployer = artifacts.require('./IDeployer.sol')
+// const IUSDT = artifacts.require('./IUSDT.sol')
+// const IDeployer = artifacts.require('./IDeployer.sol')
 
 // Import main contracts for integration testing
-const ETHTornado = artifacts.require('./ETHTornado.sol')
+// const ETHTornado = artifacts.require('./ETHTornado.sol')
 const ERC20Tornado = artifacts.require('./ERC20Tornado.sol')
 const Hasher = artifacts.require('./Hasher.sol')
 
@@ -25,7 +25,7 @@ contract('Mock Contracts Usage Demonstration', (accounts) => {
 
   const sender = accounts[0]
   const recipient = accounts[1]
-  const attacker = accounts[2]
+  // const attacker = accounts[2]
 
   before(async () => {
     // Deploy all mock contracts
@@ -70,7 +70,7 @@ contract('Mock Contracts Usage Demonstration', (accounts) => {
         name: await erc20Mock.name(),
         symbol: await erc20Mock.symbol(),
         decimals: await erc20Mock.decimals(),
-        totalSupply: await erc20Mock.totalSupply()
+        totalSupply: await erc20Mock.totalSupply(),
       }
 
       tokenInfo.name.should.equal('DAIMock')
@@ -80,27 +80,27 @@ contract('Mock Contracts Usage Demonstration', (accounts) => {
   })
 
   describe('BadRecipient Usage', () => {
-          it('should demonstrate BadRecipient rejecting ETH transfers', async () => {
-        // Test that BadRecipient properly rejects ETH
-        try {
-          await web3.eth.sendTransaction({
-            from: sender,
-            to: badRecipient.address,
-            value: '1000000000000000000' // 1 ETH
-          })
-          throw new Error('Should have rejected ETH transfer')
-        } catch (error) {
-          // Accept either the expected revert message or generic revert
-          const errorMessage = error.message || error.reason || ''
-          const acceptableErrors = ['this contract does not accept ETH', 'revert', 'VM Exception']
-          const hasAcceptableError = acceptableErrors.some(msg => errorMessage.includes(msg))
-          hasAcceptableError.should.be.true
-        }
-      })
+    it('should demonstrate BadRecipient rejecting ETH transfers', async () => {
+      // Test that BadRecipient properly rejects ETH
+      try {
+        await web3.eth.sendTransaction({
+          from: sender,
+          to: badRecipient.address,
+          value: '1000000000000000000', // 1 ETH
+        })
+        throw new Error('Should have rejected ETH transfer')
+      } catch (error) {
+        // Accept either the expected revert message or generic revert
+        const errorMessage = error.message || error.reason || ''
+        const acceptableErrors = ['this contract does not accept ETH', 'revert', 'VM Exception']
+        const hasAcceptableError = acceptableErrors.some((msg) => errorMessage.includes(msg))
+        hasAcceptableError.should.be.true
+      }
+    })
 
-    it('should be useful for testing withdrawal failure scenarios', async () => {
+    it('should be useful for testing withdrawal failure scenarios', () => {
       // Demonstrate how BadRecipient can be used to test edge cases
-      const ethTornado = await ETHTornado.deployed()
+      // const ethTornado = await ETHTornado.deployed()
 
       // Test that tornado contract handles failed recipients appropriately
       // This would be part of a larger withdrawal test where BadRecipient.address
@@ -130,23 +130,23 @@ contract('Mock Contracts Usage Demonstration', (accounts) => {
       isKnownRoot.should.be.true
     })
 
-          it('should enable comprehensive merkle tree testing', async () => {
-        // Test edge cases that would be difficult with the main contract
-        const zeroHash = '0x0000000000000000000000000000000000000000000000000000000000000000'
-        const validHash = '0x0000000000000000000000000000000000000000000000000000000000000003'
+    it('should enable comprehensive merkle tree testing', async () => {
+      // Test edge cases that would be difficult with the main contract
+      const zeroHash = '0x0000000000000000000000000000000000000000000000000000000000000000'
+      const validHash = '0x0000000000000000000000000000000000000000000000000000000000000003'
 
-        // Insert valid field values (max hash exceeds the cryptographic field)
-        await merkleTreeMock.insert(zeroHash)
-        await merkleTreeMock.insert(validHash)
+      // Insert valid field values (max hash exceeds the cryptographic field)
+      await merkleTreeMock.insert(zeroHash)
+      await merkleTreeMock.insert(validHash)
 
-        // Verify the tree can handle edge cases
-        const currentIndex = await merkleTreeMock.currentRootIndex()
-        currentIndex.should.be.a('object') // BN object
+      // Verify the tree can handle edge cases
+      const currentIndex = await merkleTreeMock.currentRootIndex()
+      currentIndex.should.be.a('object') // BN object
 
-        const isKnownZero = await merkleTreeMock.isKnownRoot(zeroHash)
-        // Zero hash shouldn't be a valid root unless specifically calculated
-        isKnownZero.should.be.false
-      })
+      const isKnownZero = await merkleTreeMock.isKnownRoot(zeroHash)
+      // Zero hash shouldn't be a valid root unless specifically calculated
+      isKnownZero.should.be.false
+    })
   })
 
   describe('Integration Testing with Mocks', () => {
@@ -188,7 +188,7 @@ contract('Mock Contracts Usage Demonstration', (accounts) => {
       const leaves = [
         '0x0000000000000000000000000000000000000000000000000000000000000001',
         '0x0000000000000000000000000000000000000000000000000000000000000002',
-        '0x0000000000000000000000000000000000000000000000000000000000000003'
+        '0x0000000000000000000000000000000000000000000000000000000000000003',
       ]
 
       for (const leaf of leaves) {
@@ -201,7 +201,7 @@ contract('Mock Contracts Usage Demonstration', (accounts) => {
   })
 
   describe('Mock Contract Best Practices', () => {
-    it('should demonstrate when to use each mock', async () => {
+    it('should demonstrate when to use each mock', () => {
       // ERC20Mock: When you need a controllable ERC20 token
       // - Unlimited minting for test scenarios
       // - Predictable behavior without external dependencies
@@ -218,7 +218,7 @@ contract('Mock Contracts Usage Demonstration', (accounts) => {
       const mockPurposes = {
         erc20Mock: 'controllable-token',
         badRecipient: 'failure-scenarios',
-        merkleTreeMock: 'internal-testing'
+        merkleTreeMock: 'internal-testing',
       }
 
       // Each mock should be distinct and serve different testing needs

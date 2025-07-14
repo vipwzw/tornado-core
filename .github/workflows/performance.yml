@@ -2,19 +2,19 @@ name: Performance Tests
 
 on:
   push:
-    branches: [ "master", "main" ]
+    branches: ['master', 'main']
     paths:
       - 'circuits/**'
       - 'contracts/**'
       - 'src/**'
   pull_request:
-    branches: [ "master", "main" ]
+    branches: ['master', 'main']
     paths:
       - 'circuits/**'
       - 'contracts/**'
       - 'src/**'
   schedule:
-    - cron: '0 4 * * 0'  # Weekly on Sunday at 4 AM
+    - cron: '0 4 * * 0' # Weekly on Sunday at 4 AM
 
 jobs:
   performance-test:

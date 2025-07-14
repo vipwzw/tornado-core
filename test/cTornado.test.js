@@ -17,7 +17,7 @@ contract('cTornado', (accounts) => {
   let targetToken
   let snapshotId
   const sender = accounts[0]
-  const operator = accounts[1]
+  // const operator = accounts[1]
   const denomination = '1000000000000000000' // 1 ether
   const merkleTreeHeight = 20
 
@@ -33,12 +33,12 @@ contract('cTornado', (accounts) => {
       hasher.address,
       denomination,
       merkleTreeHeight,
-      targetToken.address
+      targetToken.address,
     )
     snapshotId = await takeSnapshot()
   })
 
-    describe('#constructor', () => {
+  describe('#constructor', () => {
     it('should initialize correctly', async () => {
       const compAddress = await tornado.comp()
       compAddress.should.be.equal(compToken.address)
@@ -60,7 +60,7 @@ contract('cTornado', (accounts) => {
           hasher.address,
           denomination,
           merkleTreeHeight,
-          targetToken.address
+          targetToken.address,
         )
         throw new Error('Should have thrown')
       } catch (error) {
@@ -117,7 +117,7 @@ contract('cTornado', (accounts) => {
   })
 
   describe('ERC20Tornado Functionality', () => {
-        it('should inherit deposit functionality', async () => {
+    it('should inherit deposit functionality', async () => {
       // Use a properly formatted commitment (32 bytes hex string)
       const commitment = '0x1234567890123456789012345678901234567890123456789012345678901234'
       await targetToken.mint(sender, denomination)

@@ -14,19 +14,64 @@ NC := \033[0m # No Color
 help: ## Show this help message
 	@echo "$(BLUE)Tornado Core Local CI Commands$(NC)"
 	@echo ""
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "$(YELLOW)%-15s$(NC) %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "$(YELLOW)%-20s$(NC) %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 	@echo ""
-	@echo "$(BLUE)Examples:$(NC)"
-	@echo "  make setup     # First-time setup"
-	@echo "  make ci-quick  # Quick CI check before commit"
-	@echo "  make ci        # Full CI pipeline"
-	@echo "  make act-test  # Test with GitHub Actions locally"
+	@echo "$(BLUE)Quick Start:$(NC)"
+	@echo "  make install        # Complete first-time setup"
+	@echo "  make status         # Check environment status"
+	@echo "  make diagnose       # Diagnose common issues"
+	@echo ""
+	@echo "$(BLUE)Development Workflow:$(NC)"
+	@echo "  make check          # Quick check before commit"
+	@echo "  make ci             # Full CI pipeline"
+	@echo "  make docker-ci      # Test in Docker"
+	@echo "  make act-test       # Local GitHub Actions"
+	@echo ""
+	@echo "$(BLUE)Troubleshooting:$(NC)"
+	@echo "  make diagnose       # Auto-diagnose issues"
+	@echo "  make clean          # Clean temporary files"
+	@echo "  make emergency-clean # Nuclear option"
 
 setup: ## Install dependencies and setup environment
 	@echo "$(YELLOW)🔧 Setting up development environment...$(NC)"
-	@npm run ci:setup
-	@chmod +x scripts/*.sh
+	@echo "$(BLUE)Checking prerequisites...$(NC)"
+	@if ! command -v node >/dev/null 2>&1; then \
+		echo "$(RED)❌ Node.js is not installed. Please install Node.js first.$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(BLUE)Node.js: $$(node --version)$(NC)"
+	@if ! command -v npm >/dev/null 2>&1; then \
+		echo "$(RED)❌ npm is not installed. Please install npm first.$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(BLUE)npm: $$(npm --version)$(NC)"
+	@if command -v yarn >/dev/null 2>&1; then \
+		echo "$(BLUE)yarn: $$(yarn --version)$(NC)"; \
+	else \
+		echo "$(YELLOW)⚠️  yarn not found, will use npm instead$(NC)"; \
+	fi
+	@echo "$(BLUE)Setting up environment and installing dependencies...$(NC)"
+	@npm run ci:setup || (echo "$(RED)❌ Setup failed. Trying alternative method...$(NC)" && $(MAKE) setup-fallback)
+	@chmod +x scripts/*.sh 2>/dev/null || echo "$(YELLOW)⚠️  No script files to make executable$(NC)"
 	@echo "$(GREEN)✅ Setup completed!$(NC)"
+
+setup-fallback: ## Fallback setup method
+	@echo "$(YELLOW)🔄 Running fallback setup...$(NC)"
+	@echo "$(BLUE)Creating environment file...$(NC)"
+	@if [ ! -f .env.example ]; then \
+		echo "NETWORK=development" > .env.example; \
+		echo "RPC_URL=http://localhost:8545" >> .env.example; \
+		echo "PRIVATE_KEY=0x1234567890123456789012345678901234567890123456789012345678901234" >> .env.example; \
+	fi
+	@cp .env.example .env 2>/dev/null || echo "Environment file created"
+	@echo "$(BLUE)Installing dependencies...$(NC)"
+	@if command -v yarn >/dev/null 2>&1; then \
+		yarn install || npm install; \
+	else \
+		npm install; \
+	fi
+	@echo "$(BLUE)Downloading keys (optional)...$(NC)"
+	@yarn download 2>/dev/null || npm run download 2>/dev/null || echo "$(YELLOW)⚠️  Key download failed, continuing...$(NC)"
 
 install: setup hooks ## Complete installation (setup + git hooks)
 	@echo "$(GREEN)🎉 Tornado Core development environment ready!$(NC)"
@@ -116,8 +161,79 @@ status: ## Show current environment status
 	@echo "act: $$(act --version 2>/dev/null || echo 'Not installed')"
 	@echo ""
 	@if [ -f ".env" ]; then echo "$(GREEN)✅ Environment file exists$(NC)"; else echo "$(RED)❌ Environment file missing$(NC)"; fi
+	@if [ -f ".env.example" ]; then echo "$(GREEN)✅ Environment template exists$(NC)"; else echo "$(RED)❌ Environment template missing$(NC)"; fi
 	@if [ -d "node_modules" ]; then echo "$(GREEN)✅ Dependencies installed$(NC)"; else echo "$(RED)❌ Dependencies not installed$(NC)"; fi
+	@if [ -f "package.json" ]; then echo "$(GREEN)✅ Package.json exists$(NC)"; else echo "$(RED)❌ Package.json missing$(NC)"; fi
+	@if [ -f "yarn.lock" ]; then echo "$(GREEN)✅ Yarn lockfile exists$(NC)"; elif [ -f "package-lock.json" ]; then echo "$(GREEN)✅ NPM lockfile exists$(NC)"; else echo "$(YELLOW)⚠️  No lockfile found$(NC)"; fi
 	@if [ -f ".git/hooks/pre-commit" ]; then echo "$(GREEN)✅ Git hooks installed$(NC)"; else echo "$(RED)❌ Git hooks not installed$(NC)"; fi
+	@if [ -d "build" ]; then echo "$(GREEN)✅ Build directory exists$(NC)"; else echo "$(YELLOW)⚠️  Build directory missing$(NC)"; fi
+
+diagnose: ## Diagnose common issues and provide solutions
+	@echo "$(BLUE)🔍 Diagnosing Environment Issues...$(NC)"
+	@echo ""
+	@echo "$(YELLOW)Checking for common problems:$(NC)"
+	@echo ""
+
+	@echo "$(BLUE)1. Node.js and npm:$(NC)"
+	@if ! command -v node >/dev/null 2>&1; then \
+		echo "$(RED)❌ Node.js not found$(NC)"; \
+		echo "$(YELLOW)💡 Solution: Install Node.js from https://nodejs.org$(NC)"; \
+	else \
+		echo "$(GREEN)✅ Node.js found: $$(node --version)$(NC)"; \
+	fi
+
+	@if ! command -v npm >/dev/null 2>&1; then \
+		echo "$(RED)❌ npm not found$(NC)"; \
+		echo "$(YELLOW)💡 Solution: npm usually comes with Node.js$(NC)"; \
+	else \
+		echo "$(GREEN)✅ npm found: $$(npm --version)$(NC)"; \
+	fi
+	@echo ""
+
+	@echo "$(BLUE)2. Package manager:$(NC)"
+	@if command -v yarn >/dev/null 2>&1; then \
+		echo "$(GREEN)✅ yarn found: $$(yarn --version)$(NC)"; \
+	else \
+		echo "$(YELLOW)⚠️  yarn not found, using npm$(NC)"; \
+		echo "$(YELLOW)💡 Optional: Install yarn with 'npm install -g yarn'$(NC)"; \
+	fi
+	@echo ""
+
+	@echo "$(BLUE)3. Project files:$(NC)"
+	@if [ ! -f "package.json" ]; then \
+		echo "$(RED)❌ package.json missing$(NC)"; \
+		echo "$(YELLOW)💡 Solution: You might not be in the project directory$(NC)"; \
+	else \
+		echo "$(GREEN)✅ package.json found$(NC)"; \
+	fi
+
+	@if [ ! -f ".env.example" ]; then \
+		echo "$(YELLOW)⚠️  .env.example missing$(NC)"; \
+		echo "$(YELLOW)💡 Solution: Will be created automatically$(NC)"; \
+	else \
+		echo "$(GREEN)✅ .env.example found$(NC)"; \
+	fi
+	@echo ""
+
+	@echo "$(BLUE)4. Lockfile issues:$(NC)"
+	@if [ -f "yarn.lock" ] && [ -f "package-lock.json" ]; then \
+		echo "$(YELLOW)⚠️  Both yarn.lock and package-lock.json exist$(NC)"; \
+		echo "$(YELLOW)💡 Solution: Choose one package manager and delete the other lockfile$(NC)"; \
+	else \
+		echo "$(GREEN)✅ No conflicting lockfiles$(NC)"; \
+	fi
+	@echo ""
+
+	@echo "$(BLUE)5. Recommended next steps:$(NC)"
+	@if [ ! -d "node_modules" ]; then \
+		echo "$(YELLOW)📦 Run: make setup$(NC)"; \
+	fi
+	@if [ ! -f ".git/hooks/pre-commit" ]; then \
+		echo "$(YELLOW)🪝 Run: make hooks$(NC)"; \
+	fi
+	@if [ ! -f ".env" ]; then \
+		echo "$(YELLOW)⚙️  Run: make setup$(NC)"; \
+	fi
 
 validate: ## Validate local environment is ready for CI
 	@echo "$(YELLOW)🔍 Validating environment...$(NC)"

@@ -19,7 +19,7 @@ contract('MerkleTreeWithHistory - Additional Edge Cases', (accounts) => {
     snapshotId = await takeSnapshot()
   })
 
-    describe('Edge Cases and Error Conditions', () => {
+  describe('Edge Cases and Error Conditions', () => {
     it('should handle zero commitment insertion', async () => {
       const commitment = '0x0000000000000000000000000000000000000000000000000000000000000000'
       await tree.insert(commitment, { from: sender })
@@ -39,7 +39,8 @@ contract('MerkleTreeWithHistory - Additional Edge Cases', (accounts) => {
 
     it('should correctly handle root history size limit', async () => {
       // Insert multiple commitments to test root history management
-      for (let i = 1; i <= 35; i++) { // More than ROOT_HISTORY_SIZE (30)
+      for (let i = 1; i <= 35; i++) {
+        // More than ROOT_HISTORY_SIZE (30)
         // Use small incrementing values that are valid field elements
         const commitment = '0x' + i.toString(16).padStart(64, '0')
         await tree.insert(commitment, { from: sender })
@@ -58,7 +59,7 @@ contract('MerkleTreeWithHistory - Additional Edge Cases', (accounts) => {
       isKnown.should.be.equal(false)
     })
 
-            it('should allow duplicate commitments in merkle tree (commitment detection is in Tornado.sol)', async () => {
+    it('should allow duplicate commitments in merkle tree (commitment detection is in Tornado.sol)', async () => {
       const commitment = '0x0000000000000000000000000000000000000000000000000000000000000002'
 
       // First insertion should succeed

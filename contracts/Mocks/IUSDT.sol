@@ -21,11 +21,7 @@ interface ERC20Basic {
 interface IUSDT is ERC20Basic {
   function allowance(address owner, address spender) external view returns (uint256);
 
-  function transferFrom(
-    address from,
-    address to,
-    uint256 value
-  ) external;
+  function transferFrom(address from, address to, uint256 value) external;
 
   function approve(address spender, uint256 value) external;
 
