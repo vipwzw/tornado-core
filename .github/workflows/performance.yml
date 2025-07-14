@@ -103,9 +103,17 @@ jobs:
         run: |
           echo "⛽ Gas Usage Analysis:"
           npx truffle test --grep "gas usage" --reporter json > gas-report.json || true
-          if [ -f gas-report.json ]; then
+          if [ -f gas-report.json ] && [ -s gas-report.json ]; then
             echo "Gas usage report generated"
-            cat gas-report.json | jq '.tests[] | select(.title | contains("gas")) | {title: .title, gas: .gas}'
+            # Check if the JSON is valid before parsing
+            if jq empty gas-report.json 2>/dev/null; then
+              cat gas-report.json | jq '.tests[]? | select(.title | contains("gas")) | {title: .title, gas: .gas}' || echo "No gas usage tests found"
+            else
+              echo "Invalid JSON in gas report, showing raw content:"
+              head -10 gas-report.json
+            fi
+          else
+            echo "No gas usage tests found or empty report"
           fi
 
       - name: Comment performance results on PR
