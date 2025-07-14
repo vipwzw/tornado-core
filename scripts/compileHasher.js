@@ -15,6 +15,12 @@ function main() {
     bytecode: genContract.createCode('mimcsponge', 220),
   }
 
+  // Ensure the build directory exists
+  const buildDir = path.dirname(outputPath)
+  if (!fs.existsSync(buildDir)) {
+    fs.mkdirSync(buildDir, { recursive: true })
+  }
+
   fs.writeFileSync(outputPath, JSON.stringify(contract))
 }
 

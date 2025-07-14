@@ -88,6 +88,13 @@ jobs:
         run: yarn audit --level moderate
         continue-on-error: true
 
+      - name: Build contracts for Slither analysis
+        run: |
+          mkdir -p build/circuits
+          mkdir -p build/contracts
+          npm run build:contract
+        continue-on-error: true
+
       - name: Run Slither analysis
         uses: crytic/slither-action@v0.3.0
         id: slither
