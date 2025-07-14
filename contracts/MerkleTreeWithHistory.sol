@@ -48,16 +48,16 @@ contract MerkleTreeWithHistory {
   }
 
   /**
-    @dev Hash 2 tree leaves, returns MiMC(_left, _right)
+    @dev Hash 2 tree leaves, returns MiMC(leftValue, rightValue)
   */
-  function hashLeftRight(IHasher _hasher, bytes32 _left, bytes32 _right) public pure returns (bytes32) {
-    require(uint256(_left) < FIELD_SIZE, "_left should be inside the field");
-    require(uint256(_right) < FIELD_SIZE, "_right should be inside the field");
-    uint256 R = uint256(_left);
+  function hashLeftRight(IHasher hasher, bytes32 leftValue, bytes32 rightValue) public pure returns (bytes32) {
+    require(uint256(leftValue) < FIELD_SIZE, "leftValue should be inside the field");
+    require(uint256(rightValue) < FIELD_SIZE, "rightValue should be inside the field");
+    uint256 R = uint256(leftValue);
     uint256 C = 0;
-    (R, C) = _hasher.MiMCSponge(R, C);
-    R = addmod(R, uint256(_right), FIELD_SIZE);
-    (R, C) = _hasher.MiMCSponge(R, C);
+    (R, C) = hasher.MiMCSponge(R, C);
+    R = addmod(R, uint256(rightValue), FIELD_SIZE);
+    (R, C) = hasher.MiMCSponge(R, C);
     return bytes32(R);
   }
 
