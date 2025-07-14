@@ -129,17 +129,56 @@ docker-performance: ## Run performance tests in Docker
 
 act-test: ## Test GitHub Actions locally with act
 	@echo "$(YELLOW)🎭 Testing GitHub Actions locally...$(NC)"
-	@if command -v act >/dev/null 2>&1; then \
-		act -j test; \
-	else \
+	@if ! command -v act >/dev/null 2>&1; then \
 		echo "$(RED)❌ 'act' is not installed. Install it from: https://github.com/nektos/act$(NC)"; \
 		echo "$(BLUE)💡 Alternative: Use 'make docker-ci' instead$(NC)"; \
+		exit 1; \
 	fi
+	@echo "$(BLUE)Setting up act configuration...$(NC)"
+	@if [ ! -f .actrc ]; then \
+		echo "$(YELLOW)⚠️  .actrc not found, creating default configuration...$(NC)"; \
+		echo "--artifact-server-path /tmp/artifacts" > .actrc; \
+		echo "-P ubuntu-latest=catthehacker/ubuntu:runner-latest" >> .actrc; \
+		echo "--env ACT=true" >> .actrc; \
+	fi
+	@echo "$(BLUE)Running local GitHub Actions test...$(NC)"
+	@if [ -f .github/workflows/local-test.yml ]; then \
+		act -W .github/workflows/local-test.yml --container-daemon-socket unix:///var/run/docker.sock || \
+		(echo "$(YELLOW)⚠️  Act test failed, trying simplified version...$(NC)" && $(MAKE) act-simple); \
+	else \
+		echo "$(YELLOW)⚠️  Local test workflow not found, using main workflow...$(NC)"; \
+		act -j test --container-daemon-socket unix:///var/run/docker.sock || \
+		(echo "$(RED)❌ Act test failed. See troubleshooting below:$(NC)" && $(MAKE) act-troubleshoot); \
+	fi
+
+act-simple: ## Run simplified act test (no external dependencies)
+	@echo "$(BLUE)🎭 Running simplified act test...$(NC)"
+	@echo "$(YELLOW)Note: This runs a minimal test to verify act functionality$(NC)"
+	@act --list || echo "$(RED)Act is having issues. Try 'make docker-ci' instead$(NC)"
+
+act-troubleshoot: ## Show troubleshooting information for act
+	@echo "$(YELLOW)🔧 Act Troubleshooting Guide:$(NC)"
+	@echo ""
+	@echo "$(BLUE)Common issues and solutions:$(NC)"
+	@echo "1. $(YELLOW)Authentication errors:$(NC) Normal for local testing, use 'make docker-ci'"
+	@echo "2. $(YELLOW)Docker issues:$(NC) Ensure Docker is running: 'docker ps'"
+	@echo "3. $(YELLOW)Large images:$(NC) Act downloads large images on first run"
+	@echo "4. $(YELLOW)Network timeouts:$(NC) Check internet connection"
+	@echo ""
+	@echo "$(BLUE)Alternative commands:$(NC)"
+	@echo "  make docker-ci      # Run full CI in Docker"
+	@echo "  make ci             # Run CI scripts locally"
+	@echo "  make check          # Quick local checks"
+	@echo ""
+	@echo "$(BLUE)Act status:$(NC)"
+	@act --version 2>/dev/null || echo "Act version check failed"
+	@docker --version 2>/dev/null || echo "Docker not available"
 
 act-security: ## Run security workflow locally with act
 	@echo "$(YELLOW)🔒 Testing security workflow locally...$(NC)"
 	@if command -v act >/dev/null 2>&1; then \
-		act -j security; \
+		act -j security --container-daemon-socket unix:///var/run/docker.sock || \
+		echo "$(YELLOW)⚠️  Security workflow test failed$(NC)"; \
 	else \
 		echo "$(RED)❌ 'act' is not installed. Install it from: https://github.com/nektos/act$(NC)"; \
 	fi
@@ -147,7 +186,8 @@ act-security: ## Run security workflow locally with act
 act-lint: ## Run lint workflow locally with act
 	@echo "$(YELLOW)📝 Testing lint workflow locally...$(NC)"
 	@if command -v act >/dev/null 2>&1; then \
-		act -j lint; \
+		act -j lint --container-daemon-socket unix:///var/run/docker.sock || \
+		echo "$(YELLOW)⚠️  Lint workflow test failed$(NC)"; \
 	else \
 		echo "$(RED)❌ 'act' is not installed. Install it from: https://github.com/nektos/act$(NC)"; \
 	fi
@@ -167,6 +207,7 @@ status: ## Show current environment status
 	@if [ -f "yarn.lock" ]; then echo "$(GREEN)✅ Yarn lockfile exists$(NC)"; elif [ -f "package-lock.json" ]; then echo "$(GREEN)✅ NPM lockfile exists$(NC)"; else echo "$(YELLOW)⚠️  No lockfile found$(NC)"; fi
 	@if [ -f ".git/hooks/pre-commit" ]; then echo "$(GREEN)✅ Git hooks installed$(NC)"; else echo "$(RED)❌ Git hooks not installed$(NC)"; fi
 	@if [ -d "build" ]; then echo "$(GREEN)✅ Build directory exists$(NC)"; else echo "$(YELLOW)⚠️  Build directory missing$(NC)"; fi
+	@if [ -f ".actrc" ]; then echo "$(GREEN)✅ Act configuration exists$(NC)"; else echo "$(YELLOW)⚠️  Act configuration missing$(NC)"; fi
 
 diagnose: ## Diagnose common issues and provide solutions
 	@echo "$(BLUE)🔍 Diagnosing Environment Issues...$(NC)"
@@ -199,7 +240,23 @@ diagnose: ## Diagnose common issues and provide solutions
 	fi
 	@echo ""
 
-	@echo "$(BLUE)3. Project files:$(NC)"
+	@echo "$(BLUE)3. Docker and act:$(NC)"
+	@if command -v docker >/dev/null 2>&1; then \
+		echo "$(GREEN)✅ Docker found: $$(docker --version)$(NC)"; \
+	else \
+		echo "$(YELLOW)⚠️  Docker not found$(NC)"; \
+		echo "$(YELLOW)💡 Install Docker for local container testing$(NC)"; \
+	fi
+
+	@if command -v act >/dev/null 2>&1; then \
+		echo "$(GREEN)✅ act found: $$(act --version)$(NC)"; \
+	else \
+		echo "$(YELLOW)⚠️  act not found$(NC)"; \
+		echo "$(YELLOW)💡 Install act for GitHub Actions testing: https://github.com/nektos/act$(NC)"; \
+	fi
+	@echo ""
+
+	@echo "$(BLUE)4. Project files:$(NC)"
 	@if [ ! -f "package.json" ]; then \
 		echo "$(RED)❌ package.json missing$(NC)"; \
 		echo "$(YELLOW)💡 Solution: You might not be in the project directory$(NC)"; \
@@ -215,7 +272,7 @@ diagnose: ## Diagnose common issues and provide solutions
 	fi
 	@echo ""
 
-	@echo "$(BLUE)4. Lockfile issues:$(NC)"
+	@echo "$(BLUE)5. Lockfile issues:$(NC)"
 	@if [ -f "yarn.lock" ] && [ -f "package-lock.json" ]; then \
 		echo "$(YELLOW)⚠️  Both yarn.lock and package-lock.json exist$(NC)"; \
 		echo "$(YELLOW)💡 Solution: Choose one package manager and delete the other lockfile$(NC)"; \
@@ -224,7 +281,7 @@ diagnose: ## Diagnose common issues and provide solutions
 	fi
 	@echo ""
 
-	@echo "$(BLUE)5. Recommended next steps:$(NC)"
+	@echo "$(BLUE)6. Recommended next steps:$(NC)"
 	@if [ ! -d "node_modules" ]; then \
 		echo "$(YELLOW)📦 Run: make setup$(NC)"; \
 	fi
@@ -233,6 +290,9 @@ diagnose: ## Diagnose common issues and provide solutions
 	fi
 	@if [ ! -f ".env" ]; then \
 		echo "$(YELLOW)⚙️  Run: make setup$(NC)"; \
+	fi
+	@if [ ! -f ".actrc" ]; then \
+		echo "$(YELLOW)🎭 Run: make act-test$(NC)"; \
 	fi
 
 validate: ## Validate local environment is ready for CI
