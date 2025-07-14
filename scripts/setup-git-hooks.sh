@@ -83,7 +83,7 @@ fi
 
 # Run security audit (don't fail on warnings)
 echo "🔒 Running security audit..."
-if ! npm audit --audit-level high --silent; then
+if ! yarn audit --level high --silent; then
     echo -e "${YELLOW}⚠️  Security vulnerabilities found. Please review.${NC}"
     # Don't fail the commit for security warnings unless they're high severity
 fi

@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18, 20, 22]
+        node-version: [20, 22, 24]
 
     steps:
       - name: Checkout
@@ -84,8 +84,8 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Run npm audit
-        run: npm audit --audit-level moderate
+      - name: Run yarn audit
+        run: yarn audit --level moderate
         continue-on-error: true
 
       - name: Run Slither analysis

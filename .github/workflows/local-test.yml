@@ -44,7 +44,7 @@ jobs:
       - name: Security audit (optional)
         run: |
           echo "🔒 Running security audit..."
-          npm audit --audit-level moderate 2>/dev/null || echo "✅ Security audit completed"
+          yarn audit --level moderate 2>/dev/null || echo "✅ Security audit completed"
 
       - name: Final status
         run: |

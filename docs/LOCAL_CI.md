@@ -323,7 +323,7 @@ make status && make validate
 
 ```bash
 # 并行运行检查（需要 GNU parallel）
-parallel ::: "make lint" "make build" "npm audit"
+parallel ::: "make lint" "make build" "yarn audit"
 ```
 
 ## 🔒 安全注意事项
@@ -336,9 +336,10 @@ parallel ::: "make lint" "make build" "npm audit"
 2. **依赖安全**
 
    ```bash
-   # 定期安全审计
-   npm audit
+   # 定期安全审计（推荐使用 yarn）
    yarn audit
+   # 或者如果使用 npm
+   npm audit
    ```
 
 3. **容器安全**

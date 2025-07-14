@@ -10091,9 +10091,10 @@ webidl-conversions@^3.0.0:
   resolved "https://registry.yarnpkg.com/webidl-conversions/-/webidl-conversions-3.0.1.tgz#24534275e2a7bc6be7bc86611cc16ae0a5654871"
   integrity sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ==
 
-"websnark@git+https://github.com/tornadocash/websnark.git#4c0af6a8b65aabea3c09f377f63c44e7a58afa6d":
+websnark@^0.0.4:
   version "0.0.4"
-  resolved "git+https://github.com/tornadocash/websnark.git#4c0af6a8b65aabea3c09f377f63c44e7a58afa6d"
+  resolved "https://registry.yarnpkg.com/websnark/-/websnark-0.0.4.tgz#a8bb2862260976df33bba9b979f98c90f1f673ca"
+  integrity sha512-UD6TJ2Q5WSo8qessP5Iy11/pDzEWXwsBoBmt1AcQ2W/jYqEAme3/TIwvj3bhdzCqRSipoKlLzbCaiqKAcCkkgQ==
   dependencies:
     big-integer "^1.6.42"
 

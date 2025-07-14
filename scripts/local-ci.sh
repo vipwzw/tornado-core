@@ -214,12 +214,12 @@ fi
 if [ "$SKIP_SECURITY" = false ]; then
     log_step "Running security checks..."
 
-    # npm audit
-    log_info "Running npm security audit..."
+    # yarn audit
+    log_info "Running yarn security audit..."
     if [ "$VERBOSE" = true ]; then
-        npm audit --audit-level moderate || log_warning "Some vulnerabilities found (non-critical)"
+        yarn audit --level moderate || log_warning "Some vulnerabilities found (non-critical)"
     else
-        npm audit --audit-level moderate > /dev/null 2>&1 || log_warning "Some vulnerabilities found (non-critical)"
+        yarn audit --level moderate > /dev/null 2>&1 || log_warning "Some vulnerabilities found (non-critical)"
     fi
 
     log_success "Security checks completed"
