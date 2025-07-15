@@ -116,3 +116,4 @@ release-notes.md
 /tmp/artifacts
 .cache/
 release-artifacts/
+*.bak
