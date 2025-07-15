@@ -3,7 +3,6 @@
 const fs = require('fs')
 const path = require('path')
 const { execSync } = require('child_process')
-const semver = require('semver')
 
 // 颜色输出
 const colors = {
@@ -14,7 +13,7 @@ const colors = {
   magenta: '\x1b[35m',
   cyan: '\x1b[36m',
   white: '\x1b[37m',
-  reset: '\x1b[0m'
+  reset: '\x1b[0m',
 }
 
 const log = {
@@ -22,14 +21,14 @@ const log = {
   success: (msg) => console.log(`${colors.green}✅ ${msg}${colors.reset}`),
   warning: (msg) => console.log(`${colors.yellow}⚠️  ${msg}${colors.reset}`),
   error: (msg) => console.log(`${colors.red}❌ ${msg}${colors.reset}`),
-  step: (msg) => console.log(`${colors.cyan}🔧 ${msg}${colors.reset}`)
+  step: (msg) => console.log(`${colors.cyan}🔧 ${msg}${colors.reset}`),
 }
 
 const REQUIRED_FILES = [
   'build/circuits/withdraw.json',
   'build/circuits/withdraw_proving_key.bin',
   'build/circuits/withdraw_verification_key.json',
-  'build/circuits/Verifier.sol'
+  'build/circuits/Verifier.sol',
 ]
 
 function getCurrentVersion() {
@@ -120,7 +119,7 @@ function generateReleaseArtifacts() {
     'build/circuits/withdraw.json': 'withdraw.json',
     'build/circuits/withdraw_proving_key.bin': 'withdraw_proving_key.bin',
     'build/circuits/withdraw_verification_key.json': 'withdraw_verification_key.json',
-    'build/circuits/Verifier.sol': 'Verifier.sol'
+    'build/circuits/Verifier.sol': 'Verifier.sol',
   }
 
   for (const [source, dest] of Object.entries(fileMapping)) {
@@ -152,7 +151,7 @@ function generateReleaseArtifacts() {
   // Copy additional files if they exist
   const additionalFiles = {
     'index.js': 'tornado-core-cli.js',
-    'build/circuits/withdraw_proving_key.json': 'withdraw_proving_key.json'
+    'build/circuits/withdraw_proving_key.json': 'withdraw_proving_key.json',
   }
 
   for (const [source, dest] of Object.entries(additionalFiles)) {
@@ -188,7 +187,7 @@ function generateReleaseArtifacts() {
   // List all generated files
   const files = fs.readdirSync(artifactsDir)
   log.info(`Generated ${files.length} release artifacts:`)
-  files.forEach(file => {
+  files.forEach((file) => {
     const filePath = path.join(artifactsDir, file)
     const stats = fs.statSync(filePath)
     const sizeMB = (stats.size / 1024 / 1024).toFixed(1)
@@ -252,7 +251,7 @@ function createTag(version) {
 
   try {
     log.step(`Creating git tag ${tagName}...`)
-    execSync(`git add package.json`, { stdio: 'inherit' })
+    execSync('git add package.json', { stdio: 'inherit' })
     execSync(`git commit -m "chore: release ${tagName}"`, { stdio: 'inherit' })
     execSync(`git tag -a ${tagName} -m "Release ${tagName}"`, { stdio: 'inherit' })
     log.success(`Created tag ${tagName}`)
@@ -307,7 +306,7 @@ function main() {
   const options = {
     skipTests: args.includes('--skip-tests'),
     skipBuild: args.includes('--skip-build'),
-    dryRun: args.includes('--dry-run')
+    dryRun: args.includes('--dry-run'),
   }
 
   console.log(`${colors.magenta}🌪️  Tornado Core Release Manager${colors.reset}\n`)
@@ -330,7 +329,7 @@ function main() {
       log.success('Project is ready for release!')
       break
 
-    case 'release':
+    case 'release': {
       const version = args[1]
       if (!version) {
         log.error('Please provide a version number')
@@ -373,8 +372,13 @@ function main() {
       pushRelease(tagName)
 
       log.success('🎉 Release completed successfully!')
-      log.info(`Monitor the release workflow at: https://github.com/${process.env.GITHUB_REPOSITORY || 'tornadocash/tornado-core'}/actions`)
+      log.info(
+        `Monitor the release workflow at: https://github.com/${
+          process.env.GITHUB_REPOSITORY || 'tornadocash/tornado-core'
+        }/actions`,
+      )
       break
+    }
 
     case 'help':
     case '--help':

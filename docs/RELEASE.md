@@ -13,6 +13,7 @@ git push origin v2.1.0
 ```
 
 The GitHub Actions workflow will automatically:
+
 1. Generate all circuit files
 2. Build contracts and CLI
 3. Run tests
@@ -40,6 +41,7 @@ npm run release 2.1.0
 All release files are automatically generated during the build process:
 
 ### Circuit Files (Generated from `circuits/`)
+
 - **`withdraw.json`** - Circuit definition (compiled from `circuits/withdraw.circom`)
 - **`withdraw_proving_key.bin`** - Binary proving key (converted from JSON format)
 - **`withdraw_proving_key.json`** - JSON proving key (generated during setup)
@@ -48,12 +50,14 @@ All release files are automatically generated during the build process:
 - **`tornado.params`** - Parameters file (copy of proving key in binary format)
 
 ### Build Process Steps
+
 1. **Circuit Compilation**: `npm run build:circuit:compile`
 2. **Key Generation**: `npm run build:circuit:setup`
 3. **Binary Conversion**: `npm run build:circuit:bin`
 4. **Contract Generation**: `npm run build:circuit:contract`
 
 ### Additional Files
+
 - **`tornado-core-cli.js`** - Browser-compatible CLI bundle
 - **`*_flat.sol`** - Flattened contract files
 - **`*.tar.gz`** - Compressed archives of build directories
@@ -88,6 +92,7 @@ npm run release:check
 ```
 
 Expected output:
+
 ```
 ✓ build/circuits/withdraw.json (19.9MB)
 ✓ build/circuits/withdraw_proving_key.bin (13.8MB)
@@ -119,6 +124,7 @@ npm run release 2.1.0
 ```
 
 Options:
+
 - `--skip-tests` - Skip test execution
 - `--skip-build` - Skip build process
 - `--dry-run` - Show what would be done
@@ -134,20 +140,21 @@ Options:
 
 Each release includes:
 
-| File | Size | Description |
-|------|------|-------------|
-| `tornado.params` | ~14MB | Proving parameters for zk-SNARK |
-| `withdraw.json` | ~20MB | Circuit definition and constraints |
-| `withdraw_proving_key.bin` | ~14MB | Binary proving key |
-| `Verifier.sol` | ~9KB | Solidity verifier contract |
-| `withdraw_verification_key.json` | ~4KB | Verification key |
-| `tornado-core-cli.js` | Variable | Browser-compatible CLI |
+| File                             | Size     | Description                        |
+| -------------------------------- | -------- | ---------------------------------- |
+| `tornado.params`                 | ~14MB    | Proving parameters for zk-SNARK    |
+| `withdraw.json`                  | ~20MB    | Circuit definition and constraints |
+| `withdraw_proving_key.bin`       | ~14MB    | Binary proving key                 |
+| `Verifier.sol`                   | ~9KB     | Solidity verifier contract         |
+| `withdraw_verification_key.json` | ~4KB     | Verification key                   |
+| `tornado-core-cli.js`            | Variable | Browser-compatible CLI             |
 
 ## Troubleshooting
 
 ### Build Failures
 
 **Error**: `Circuit compilation failed`
+
 ```bash
 # Clean and rebuild
 rm -rf build/
@@ -155,6 +162,7 @@ npm run build:circuit
 ```
 
 **Error**: `Missing ceremony keys`
+
 ```bash
 # Download required keys
 yarn download
@@ -163,6 +171,7 @@ yarn download
 ### Test Failures
 
 **Error**: `Ganache connection failed`
+
 ```bash
 # Ensure port 8545 is free
 kill $(lsof -ti:8545)
@@ -172,6 +181,7 @@ npm run ci:ganache:start
 ### Release Issues
 
 **Error**: `Working directory not clean`
+
 ```bash
 # Commit or stash changes
 git add .
@@ -179,6 +189,7 @@ git commit -m "chore: prepare for release"
 ```
 
 **Error**: `Invalid version format`
+
 ```bash
 # Use proper semver format
 npm run release v2.1.0  # ✓ Correct
@@ -213,6 +224,7 @@ npm run release release-2.1.0  # ✗ Invalid
 ## GitHub Permissions
 
 Required repository permissions:
+
 - **Contents**: Write (for creating releases)
 - **Actions**: Write (for workflow execution)
 - **Metadata**: Read (for repository access)
@@ -220,6 +232,7 @@ Required repository permissions:
 ## Support
 
 For release issues:
+
 1. Check the [troubleshooting section](#troubleshooting)
 2. Review GitHub Actions logs
 3. Verify all dependencies are installed

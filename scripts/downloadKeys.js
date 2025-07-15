@@ -8,18 +8,18 @@ const contractsPath = __dirname + '/../build/contracts'
 
 function log(message, type = 'info') {
   const colors = {
-    info: '\x1b[36m',    // cyan
+    info: '\x1b[36m', // cyan
     success: '\x1b[32m', // green
     warning: '\x1b[33m', // yellow
-    error: '\x1b[31m',   // red
-    reset: '\x1b[0m'     // reset
+    error: '\x1b[31m', // red
+    reset: '\x1b[0m', // reset
   }
 
   const color = colors[type] || colors.info
   console.log(`${color}${message}${colors.reset}`)
 }
 
-async function generateCircuitFiles() {
+function generateCircuitFiles() {
   log('🔧 Generating circuit files...', 'info')
 
   try {
