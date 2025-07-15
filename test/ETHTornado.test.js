@@ -27,6 +27,19 @@ const toFixedHex = (number, length = 32) =>
     .padStart(length * 2, '0')
 const getRandomRecipient = () => rbigint(20)
 
+// Helper function to ensure proof format compatibility
+const formatProof = (proof) => {
+  if (Array.isArray(proof)) {
+    return proof.map((p) => {
+      if (typeof p === 'string' && p.startsWith('0x')) {
+        return p
+      }
+      return '0x' + bigInt(p).toString(16).padStart(64, '0')
+    })
+  }
+  return proof
+}
+
 function generateDeposit() {
   let deposit = {
     secret: rbigint(31),
@@ -190,7 +203,8 @@ contract('ETHTornado', (accounts) => {
       })
 
       const proofData = await websnarkUtils.genWitnessAndProve(groth16, input, circuit, proving_key)
-      const { proof } = websnarkUtils.toSolidityInput(proofData)
+      const { proof: rawProof } = websnarkUtils.toSolidityInput(proofData)
+      const proof = formatProof(rawProof)
 
       const balanceTornadoBefore = await web3.eth.getBalance(tornado.address)
       const balanceRelayerBefore = await web3.eth.getBalance(relayer)
@@ -250,7 +264,8 @@ contract('ETHTornado', (accounts) => {
         pathIndices: pathIndices,
       })
       const proofData = await websnarkUtils.genWitnessAndProve(groth16, input, circuit, proving_key)
-      const { proof } = websnarkUtils.toSolidityInput(proofData)
+      const { proof: rawProof } = websnarkUtils.toSolidityInput(proofData)
+      const proof = formatProof(rawProof)
       const args = [
         toFixedHex(input.root),
         toFixedHex(input.nullifierHash),
@@ -284,7 +299,8 @@ contract('ETHTornado', (accounts) => {
         pathIndices: pathIndices,
       })
       const proofData = await websnarkUtils.genWitnessAndProve(groth16, input, circuit, proving_key)
-      const { proof } = websnarkUtils.toSolidityInput(proofData)
+      const { proof: rawProof } = websnarkUtils.toSolidityInput(proofData)
+      const proof = formatProof(rawProof)
       const args = [
         toFixedHex(input.root),
         toFixedHex(
@@ -322,7 +338,8 @@ contract('ETHTornado', (accounts) => {
       })
 
       const proofData = await websnarkUtils.genWitnessAndProve(groth16, input, circuit, proving_key)
-      const { proof } = websnarkUtils.toSolidityInput(proofData)
+      const { proof: rawProof } = websnarkUtils.toSolidityInput(proofData)
+      const proof = formatProof(rawProof)
       const args = [
         toFixedHex(input.root),
         toFixedHex(input.nullifierHash),
@@ -356,7 +373,8 @@ contract('ETHTornado', (accounts) => {
       })
 
       const proofData = await websnarkUtils.genWitnessAndProve(groth16, input, circuit, proving_key)
-      const { proof } = websnarkUtils.toSolidityInput(proofData)
+      const { proof: rawProof } = websnarkUtils.toSolidityInput(proofData)
+      const proof = formatProof(rawProof)
 
       const args = [
         toFixedHex(randomHex(32)),
@@ -467,7 +485,8 @@ contract('ETHTornado', (accounts) => {
       })
 
       const proofData = await websnarkUtils.genWitnessAndProve(groth16, input, circuit, proving_key)
-      const { proof } = websnarkUtils.toSolidityInput(proofData)
+      const { proof: rawProof } = websnarkUtils.toSolidityInput(proofData)
+      const proof = formatProof(rawProof)
 
       const args = [
         toFixedHex(input.root),
@@ -511,7 +530,8 @@ contract('ETHTornado', (accounts) => {
       })
 
       const proofData = await websnarkUtils.genWitnessAndProve(groth16, input, circuit, proving_key)
-      const { proof } = websnarkUtils.toSolidityInput(proofData)
+      const { proof: rawProof } = websnarkUtils.toSolidityInput(proofData)
+      const proof = formatProof(rawProof)
 
       const args = [
         toFixedHex(input.root),
