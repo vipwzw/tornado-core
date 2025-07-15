@@ -131,24 +131,3 @@ jobs:
 
       - name: Solidity lint
         run: npx solhint 'contracts/**/*.sol'
-
-  notify:
-    name: Notifications
-    runs-on: ubuntu-latest
-    needs: [test, security, lint]
-    if: failure()
-    steps:
-      - name: Telegram Failure Notification
-        uses: appleboy/telegram-action@v1.0.1
-        with:
-          message: |
-            ❗ CI/CD Pipeline failed for [${{ github.repository }}](https://github.com/${{ github.repository }}/actions)
-
-            📝 Commit: ${{ github.sha }}
-            👤 Author: ${{ github.actor }}
-            🌿 Branch: ${{ github.ref_name }}
-
-            Please check the [logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.
-          format: markdown
-          to: ${{ secrets.TELEGRAM_CHAT_ID }}
-          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
