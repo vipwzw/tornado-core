@@ -51,7 +51,7 @@ async function main() {
 
   try {
     // Try to download missing files from GitHub releases
-    const release = await axios.get('https://api.github.com/repos/tornadocash/tornado-core/releases/latest')
+    const release = await axios.get('https://api.github.com/repos/vipwzw/tornado-core/releases/latest')
     const { assets } = release.data
 
     for (let asset of assets) {

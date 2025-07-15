@@ -9,9 +9,9 @@ updates:
       time: '06:00'
     open-pull-requests-limit: 10
     reviewers:
-      - 'tornadocash/core-team'
+      - 'vipwzw/core-team'
     assignees:
-      - 'tornadocash/core-team'
+      - 'vipwzw/core-team'
     commit-message:
       prefix: 'deps'
       prefix-development: 'deps-dev'
