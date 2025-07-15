@@ -84,8 +84,8 @@ function snarkVerify(proof) {
     proof = unstringifyBigInts2(proof)
     const verification_key = unstringifyBigInts2(require('../build/circuits/withdraw_verification_key.json'))
 
-    // Use the modern snarkjs API
-    return snarkjs.groth16.verify(verification_key, proof.publicSignals, proof)
+    // Use the correct API for Tornado Cash snarkjs fork
+    return snarkjs.groth.isValid(verification_key, proof, proof.publicSignals)
   } catch (error) {
     console.error('❌ snarkVerify failed:', error.message)
     return false
