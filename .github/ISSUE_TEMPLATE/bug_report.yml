@@ -71,7 +71,7 @@ body:
       description: Please provide your environment details
       placeholder: |
         - OS: [e.g. Ubuntu 20.04, macOS 12.0, Windows 10]
-        - Node.js version: [e.g. 16.14.0]
+        - Node.js version: [e.g. 24.0.0]
         - npm/yarn version: [e.g. yarn 1.22.17]
         - Truffle version: [e.g. 5.1.67]
         - Web3 provider: [e.g. Ganache, Infura, local node]
