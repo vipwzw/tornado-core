@@ -34,8 +34,22 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Download ceremony keys
-        run: yarn download
+      - name: Generate circuit files and keys
+        run: |
+          echo "🔧 Generating circuit files..."
+          yarn download
+          echo "📋 Checking generated files:"
+          ls -la build/circuits/ || echo "❌ build/circuits directory not found"
+          if [ -f build/circuits/withdraw_proving_key.bin ]; then
+            echo "✅ withdraw_proving_key.bin exists ($(stat -c%s build/circuits/withdraw_proving_key.bin 2>/dev/null || stat -f%z build/circuits/withdraw_proving_key.bin) bytes)"
+          else
+            echo "❌ withdraw_proving_key.bin missing"
+          fi
+          if [ -f build/circuits/withdraw_verification_key.json ]; then
+            echo "✅ withdraw_verification_key.json exists"
+          else
+            echo "❌ withdraw_verification_key.json missing"
+          fi
 
       - name: Setup environment
         run: cp .env.example .env
@@ -43,14 +57,25 @@ jobs:
       - name: Start Ganache
         run: npx ganache-cli > /dev/null &
 
-      - name: Build circuits
-        run: npm run build:circuit
-
       - name: Build contracts
         run: npm run build:contract
 
       - name: Deploy contracts
         run: npm run migrate:dev
+
+      - name: Verify circuit files before tests
+        run: |
+          echo "🔍 Final verification of circuit files:"
+          ls -la build/circuits/
+          if [ ! -f build/circuits/withdraw_proving_key.bin ]; then
+            echo "❌ Critical: withdraw_proving_key.bin is missing!"
+            exit 1
+          fi
+          if [ ! -f build/circuits/withdraw_verification_key.json ]; then
+            echo "❌ Critical: withdraw_verification_key.json is missing!"
+            exit 1
+          fi
+          echo "✅ All required circuit files are present"
 
       - name: Run tests
         run: yarn test

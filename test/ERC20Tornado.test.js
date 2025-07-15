@@ -85,7 +85,30 @@ contract('ERC20Tornado', (accounts) => {
     snapshotId = await takeSnapshot()
     groth16 = await buildGroth16()
     circuit = require('../build/circuits/withdraw.json')
-    proving_key = fs.readFileSync('build/circuits/withdraw_proving_key.bin').buffer
+
+    // Check if proving key exists
+    const provingKeyPath = 'build/circuits/withdraw_proving_key.bin'
+    if (!fs.existsSync(provingKeyPath)) {
+      throw new Error(
+        `❌ Critical: Proving key file not found at ${provingKeyPath}. Please run 'yarn download' first.`,
+      )
+    }
+
+    // Check if verification key exists
+    const verificationKeyPath = 'build/circuits/withdraw_verification_key.json'
+    if (!fs.existsSync(verificationKeyPath)) {
+      throw new Error(
+        `❌ Critical: Verification key file not found at ${verificationKeyPath}. Please run 'yarn download' first.`,
+      )
+    }
+
+    proving_key = fs.readFileSync(provingKeyPath).buffer
+
+    // Log file sizes for debugging
+    const provingKeyStats = fs.statSync(provingKeyPath)
+    const verificationKeyStats = fs.statSync(verificationKeyPath)
+    console.log(`📁 Proving key: ${Math.round((provingKeyStats.size / 1024 / 1024) * 100) / 100} MB`)
+    console.log(`📁 Verification key: ${Math.round((verificationKeyStats.size / 1024) * 100) / 100} KB`)
   })
 
   describe('#constructor', () => {
