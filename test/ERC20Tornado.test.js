@@ -11,7 +11,7 @@ const Token = artifacts.require('./ERC20Mock.sol')
 const USDTToken = artifacts.require('./IUSDT.sol')
 const { ETH_AMOUNT, TOKEN_AMOUNT, MERKLE_TREE_HEIGHT, ERC20_TOKEN } = process.env
 
-const websnarkUtils = require('./websnark-utils')
+const websnarkUtils = require('websnark/src/utils')
 const buildGroth16 = require('websnark/src/groth16')
 const stringifyBigInts = require('websnark/tools/stringifybigint').stringifyBigInts
 const snarkjs = require('snarkjs')

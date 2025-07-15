@@ -1,70 +1,102 @@
 const path = require('path')
 const fs = require('fs')
+const { execSync } = require('child_process')
+
 const files = ['withdraw.json', 'withdraw_proving_key.bin', 'Verifier.sol', 'withdraw_verification_key.json']
 const circuitsPath = __dirname + '/../build/circuits'
 const contractsPath = __dirname + '/../build/contracts'
-const releasePath = __dirname + '/../release'
 
-function copyFile(sourcePath, destPath) {
-  return new Promise((resolve, reject) => {
-    const readStream = fs.createReadStream(sourcePath)
-    const writeStream = fs.createWriteStream(destPath)
+function log(message, type = 'info') {
+  const colors = {
+    info: '\x1b[36m',    // cyan
+    success: '\x1b[32m', // green
+    warning: '\x1b[33m', // yellow
+    error: '\x1b[31m',   // red
+    reset: '\x1b[0m'     // reset
+  }
 
-    readStream.on('error', reject)
-    writeStream.on('error', reject)
-    writeStream.on('finish', resolve)
+  const color = colors[type] || colors.info
+  console.log(`${color}${message}${colors.reset}`)
+}
 
-    readStream.pipe(writeStream)
-  })
+async function generateCircuitFiles() {
+  log('🔧 Generating circuit files...', 'info')
+
+  try {
+    // Create directories if they don't exist
+    if (!fs.existsSync(circuitsPath)) {
+      fs.mkdirSync(circuitsPath, { recursive: true })
+    }
+    if (!fs.existsSync(contractsPath)) {
+      fs.mkdirSync(contractsPath, { recursive: true })
+    }
+
+    log('📦 Step 1: Compiling circuit...', 'info')
+    execSync('npm run build:circuit:compile', { stdio: 'inherit' })
+
+    log('🔑 Step 2: Generating proving and verification keys...', 'info')
+    execSync('npm run build:circuit:setup', { stdio: 'inherit' })
+
+    log('🔧 Step 3: Converting proving key to binary format...', 'info')
+    execSync('npm run build:circuit:bin', { stdio: 'inherit' })
+
+    log('📝 Step 4: Generating Verifier contract...', 'info')
+    execSync('npm run build:circuit:contract', { stdio: 'inherit' })
+
+    log('✅ Circuit files generated successfully!', 'success')
+    return true
+  } catch (error) {
+    log(`❌ Failed to generate circuit files: ${error.message}`, 'error')
+    return false
+  }
 }
 
 async function main() {
-  // Create directories if they don't exist
-  if (!fs.existsSync(circuitsPath)) {
-    fs.mkdirSync(circuitsPath, { recursive: true })
-  }
-  if (!fs.existsSync(contractsPath)) {
-    fs.mkdirSync(contractsPath, { recursive: true })
-  }
+  log('🚀 Tornado Core Circuit File Generator', 'info')
+  log('===================================', 'info')
 
   // Check which files are missing
   const missingFiles = files.filter((file) => {
-    const filePath = path.resolve(__dirname, circuitsPath, file)
+    const filePath = path.resolve(circuitsPath, file)
     return !fs.existsSync(filePath)
   })
 
   if (missingFiles.length === 0) {
-    console.log('✅ All required files are already present:')
+    log('✅ All required files are already present:', 'success')
     files.forEach((file) => {
-      const filePath = path.resolve(__dirname, circuitsPath, file)
+      const filePath = path.resolve(circuitsPath, file)
       const stats = fs.statSync(filePath)
-      console.log(`  - ${file} (${Math.round((stats.size / 1024 / 1024) * 100) / 100} MB)`)
+      const sizeMB = Math.round((stats.size / 1024 / 1024) * 100) / 100
+      log(`  - ${file} (${sizeMB} MB)`, 'info')
     })
     return
   }
 
-  console.log(`Found ${missingFiles.length} missing files: ${missingFiles.join(', ')}`)
+  log(`📋 Found ${missingFiles.length} missing files: ${missingFiles.join(', ')}`, 'warning')
 
-  try {
-    // Copy missing files from local release directory
-    for (const fileName of missingFiles) {
-      const sourcePath = path.resolve(__dirname, releasePath, fileName)
-      const destPath = path.resolve(__dirname, circuitsPath, fileName)
+  // Generate all circuit files
+  const success = await generateCircuitFiles()
 
-      if (fs.existsSync(sourcePath)) {
-        console.log(`Copying ${fileName} from local release directory...`)
-        await copyFile(sourcePath, destPath)
+  if (success) {
+    log('\n📊 Generated files:', 'success')
+    files.forEach((file) => {
+      const filePath = path.resolve(circuitsPath, file)
+      if (fs.existsSync(filePath)) {
+        const stats = fs.statSync(filePath)
+        const sizeMB = Math.round((stats.size / 1024 / 1024) * 100) / 100
+        log(`  ✅ ${file} (${sizeMB} MB)`, 'success')
       } else {
-        console.error(`❌ File ${fileName} not found in release directory: ${sourcePath}`)
-        process.exit(1)
+        log(`  ❌ ${file} (not found)`, 'error')
       }
-    }
-  } catch (error) {
-    console.error('❌ Failed to copy files from release directory:', error.message)
-    console.log('ℹ️  Make sure the release directory contains all required files.')
-    console.log('ℹ️  Required files:', missingFiles.join(', '))
+    })
+  } else {
+    log('❌ Circuit file generation failed!', 'error')
     process.exit(1)
   }
 }
 
-main()
+if (require.main === module) {
+  main().catch(console.error)
+}
+
+module.exports = { generateCircuitFiles }

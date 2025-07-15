@@ -8,7 +8,7 @@ const { takeSnapshot, revertSnapshot } = require('../scripts/ganacheHelper')
 const Tornado = artifacts.require('./ETHTornado.sol')
 const { ETH_AMOUNT, MERKLE_TREE_HEIGHT } = process.env
 
-const websnarkUtils = require('./websnark-utils')
+const websnarkUtils = require('websnark/src/utils')
 const buildGroth16 = require('websnark/src/groth16')
 const stringifyBigInts = require('websnark/tools/stringifybigint').stringifyBigInts
 const unstringifyBigInts2 = require('snarkjs/src/stringifybigint').unstringifyBigInts

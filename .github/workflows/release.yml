@@ -4,11 +4,20 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g., v2.1.0)'
+        required: true
+        type: string
 
 jobs:
   build-and-release:
     name: Build and Release
     runs-on: ubuntu-latest
+
+    outputs:
+      release-tag: ${{ steps.get-tag.outputs.tag }}
 
     steps:
       - name: Checkout
@@ -16,56 +25,190 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Get release tag
+        id: get-tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          fi
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: 'yarn'
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
-
-      - name: Download ceremony keys
-        run: yarn download
-
-      - name: Build circuits
-        run: npm run build:circuit
-
-      - name: Build contracts
-        run: npm run build:contract
-
-      - name: Build browser bundle
-        run: npm run build:browserify
-
-      - name: Generate contract flattened files
-        run: npm run flat
-
-      - name: Create build archive
         run: |
-          mkdir -p release-artifacts
-          tar -czf release-artifacts/tornado-core-circuits.tar.gz build/circuits/
-          tar -czf release-artifacts/tornado-core-contracts.tar.gz build/contracts/
-          cp index.js release-artifacts/tornado-core-cli.js
-          cp *_flat.sol release-artifacts/ || true
+          yarn install --frozen-lockfile
+          echo "✅ Dependencies installed"
 
-      - name: Extract release notes
-        id: extract-notes
+      - name: Generate circuit files
         run: |
-          if [ -f CHANGELOG.md ]; then
-            # Extract notes for this version from CHANGELOG.md
-            awk '/^## \['"${GITHUB_REF#refs/tags/}"'\]/{flag=1; next} /^## \[/{flag=0} flag' CHANGELOG.md > release-notes.md
+          echo "🔧 Generating circuit files..."
+          yarn download
+          npm run build:circuit
+          echo "✅ Circuit files generated successfully"
+
+      - name: Verify generated circuit files
+        run: |
+          echo "📋 Checking generated circuit files..."
+          if [ -f "build/circuits/withdraw_proving_key.bin" ]; then
+            echo "✅ withdraw_proving_key.bin found ($(du -h build/circuits/withdraw_proving_key.bin | cut -f1))"
           else
-            echo "Release ${GITHUB_REF#refs/tags/}" > release-notes.md
-            echo "" >> release-notes.md
-            echo "Automated release created from tag ${GITHUB_REF#refs/tags/}" >> release-notes.md
+            echo "❌ withdraw_proving_key.bin not found"
+            exit 1
+          fi
+          if [ -f "build/circuits/withdraw.json" ]; then
+            echo "✅ withdraw.json found ($(du -h build/circuits/withdraw.json | cut -f1))"
+          else
+            echo "❌ withdraw.json not found"
+            exit 1
+          fi
+          if [ -f "build/circuits/Verifier.sol" ]; then
+            echo "✅ Verifier.sol found ($(du -h build/circuits/Verifier.sol | cut -f1))"
+          else
+            echo "❌ Verifier.sol not found"
+            exit 1
+          fi
+          if [ -f "build/circuits/withdraw_verification_key.json" ]; then
+            echo "✅ withdraw_verification_key.json found ($(du -h build/circuits/withdraw_verification_key.json | cut -f1))"
+          else
+            echo "❌ withdraw_verification_key.json not found"
+            exit 1
           fi
 
-      - name: Create GitHub Release
+      - name: Build contracts
+        run: |
+          echo "🔧 Building contracts..."
+          npm run build:contract
+          echo "✅ Contracts built successfully"
+
+      - name: Build browser bundle
+        run: |
+          echo "🔧 Building browser bundle..."
+          npm run build:browserify
+          echo "✅ Browser bundle built successfully"
+
+      - name: Create flattened contracts
+        run: |
+          echo "📦 Creating flattened contracts..."
+          npm run flat || echo "⚠️  Flattening failed, continuing without flattened contracts"
+
+      - name: Run tests
+        run: |
+          echo "🧪 Running tests..."
+          cp .env.example .env
+          npx ganache-cli --deterministic --accounts 10 --host 0.0.0.0 --port 8545 > ganache.log 2>&1 &
+          echo $! > ganache.pid
+          sleep 5
+          npm run migrate:dev
+          npm test
+          kill $(cat ganache.pid) && rm ganache.pid
+
+      - name: Prepare release artifacts
+        run: |
+          echo "📦 Preparing release artifacts..."
+          mkdir -p release-artifacts
+
+          # Copy circuit files with proper release names
+          if [ -f "build/circuits/withdraw_proving_key.bin" ]; then
+            cp build/circuits/withdraw_proving_key.bin release-artifacts/
+            echo "✅ Copied withdraw_proving_key.bin ($(du -h release-artifacts/withdraw_proving_key.bin | cut -f1))"
+          fi
+
+          if [ -f "build/circuits/withdraw.json" ]; then
+            cp build/circuits/withdraw.json release-artifacts/
+            echo "✅ Copied withdraw.json ($(du -h release-artifacts/withdraw.json | cut -f1))"
+          fi
+
+          if [ -f "build/circuits/Verifier.sol" ]; then
+            cp build/circuits/Verifier.sol release-artifacts/
+            echo "✅ Copied Verifier.sol ($(du -h release-artifacts/Verifier.sol | cut -f1))"
+          fi
+
+          if [ -f "build/circuits/withdraw_verification_key.json" ]; then
+            cp build/circuits/withdraw_verification_key.json release-artifacts/
+            echo "✅ Copied withdraw_verification_key.json ($(du -h release-artifacts/withdraw_verification_key.json | cut -f1))"
+          fi
+
+          # Generate tornado.params from proving key
+          if [ -f "build/circuits/withdraw_proving_key.bin" ]; then
+            cp build/circuits/withdraw_proving_key.bin release-artifacts/tornado.params
+            echo "✅ Generated tornado.params ($(du -h release-artifacts/tornado.params | cut -f1))"
+          fi
+
+          # Copy additional files
+          if [ -f "build/circuits/withdraw_proving_key.json" ]; then
+            cp build/circuits/withdraw_proving_key.json release-artifacts/
+            echo "✅ Copied withdraw_proving_key.json ($(du -h release-artifacts/withdraw_proving_key.json | cut -f1))"
+          fi
+
+          # Copy CLI and flattened contracts
+          if [ -f "index.js" ]; then
+            cp index.js release-artifacts/tornado-core-cli.js
+            echo "✅ Copied CLI bundle"
+          fi
+
+          # Copy flattened contracts
+          cp *_flat.sol release-artifacts/ 2>/dev/null || echo "⚠️  No flattened contracts found"
+
+          # Create archives
+          tar -czf release-artifacts/tornado-core-circuits.tar.gz build/circuits/
+          tar -czf release-artifacts/tornado-core-contracts.tar.gz build/contracts/
+
+          echo "📊 Release artifacts prepared:"
+          ls -la release-artifacts/
+
+      - name: Extract changelog for release
+        id: changelog
+        run: |
+          TAG_NAME="${{ steps.get-tag.outputs.tag }}"
+          VERSION=${TAG_NAME#v}
+
+          if [ -f "CHANGELOG.md" ]; then
+            # Extract changelog for this version
+            awk "/^## \[${VERSION}\]/{flag=1; next} /^## \[/{flag=0} flag" CHANGELOG.md > release_notes.md
+
+            # If changelog is empty, create generic release notes
+            if [ ! -s release_notes.md ]; then
+              echo "Release ${TAG_NAME}" > release_notes.md
+              echo "" >> release_notes.md
+              echo "### Changes" >> release_notes.md
+              echo "- Updated to version ${VERSION}" >> release_notes.md
+              echo "- See full changelog for details" >> release_notes.md
+            fi
+          else
+            # Create generic release notes if no CHANGELOG.md
+            echo "Release ${TAG_NAME}" > release_notes.md
+            echo "" >> release_notes.md
+            echo "### Changes" >> release_notes.md
+            echo "- Updated to version ${VERSION}" >> release_notes.md
+          fi
+
+          echo "Release notes:"
+          cat release_notes.md
+
+      - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: release-artifacts/*
-          body_path: release-notes.md
+          tag_name: ${{ steps.get-tag.outputs.tag }}
+          name: ${{ steps.get-tag.outputs.tag }}
+          body_path: release_notes.md
+          files: |
+            release-artifacts/withdraw_proving_key.bin
+            release-artifacts/withdraw.json
+            release-artifacts/Verifier.sol
+            release-artifacts/withdraw_verification_key.json
+            release-artifacts/tornado.params
+            release-artifacts/withdraw_proving_key.json
+            release-artifacts/tornado-core-cli.js
+            release-artifacts/*.sol
+            release-artifacts/*.tar.gz
           draft: false
-          prerelease: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') || contains(github.ref, 'rc') }}
+          prerelease: ${{ contains(steps.get-tag.outputs.tag, '-') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
