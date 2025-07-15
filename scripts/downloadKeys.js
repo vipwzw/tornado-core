@@ -1,24 +1,20 @@
-const axios = require('axios')
 const path = require('path')
 const fs = require('fs')
 const files = ['withdraw.json', 'withdraw_proving_key.bin', 'Verifier.sol', 'withdraw_verification_key.json']
 const circuitsPath = __dirname + '/../build/circuits'
 const contractsPath = __dirname + '/../build/contracts'
+const releasePath = __dirname + '/../release'
 
-async function downloadFile({ url, path }) {
-  const writer = fs.createWriteStream(path)
-
-  const response = await axios({
-    url,
-    method: 'GET',
-    responseType: 'stream',
-  })
-
-  response.data.pipe(writer)
-
+function copyFile(sourcePath, destPath) {
   return new Promise((resolve, reject) => {
-    writer.on('finish', resolve)
-    writer.on('error', reject)
+    const readStream = fs.createReadStream(sourcePath)
+    const writeStream = fs.createWriteStream(destPath)
+
+    readStream.on('error', reject)
+    writeStream.on('error', reject)
+    writeStream.on('finish', resolve)
+
+    readStream.pipe(writeStream)
   })
 }
 
@@ -50,23 +46,22 @@ async function main() {
   console.log(`Found ${missingFiles.length} missing files: ${missingFiles.join(', ')}`)
 
   try {
-    // Try to download missing files from GitHub releases
-    const release = await axios.get('https://api.github.com/repos/vipwzw/tornado-core/releases/latest')
-    const { assets } = release.data
+    // Copy missing files from local release directory
+    for (const fileName of missingFiles) {
+      const sourcePath = path.resolve(__dirname, releasePath, fileName)
+      const destPath = path.resolve(__dirname, circuitsPath, fileName)
 
-    for (let asset of assets) {
-      if (missingFiles.includes(asset.name)) {
-        console.log(`Downloading ${asset.name} ...`)
-        await downloadFile({
-          url: asset.browser_download_url,
-          path: path.resolve(__dirname, circuitsPath, asset.name),
-        })
+      if (fs.existsSync(sourcePath)) {
+        console.log(`Copying ${fileName} from local release directory...`)
+        await copyFile(sourcePath, destPath)
+      } else {
+        console.error(`❌ File ${fileName} not found in release directory: ${sourcePath}`)
+        process.exit(1)
       }
     }
   } catch (error) {
-    console.error('❌ Failed to download from GitHub releases:', error.message)
-    console.log('ℹ️  This may be due to repository restrictions or network issues.')
-    console.log('ℹ️  You may need to obtain these files manually or use alternative sources.')
+    console.error('❌ Failed to copy files from release directory:', error.message)
+    console.log('ℹ️  Make sure the release directory contains all required files.')
     console.log('ℹ️  Required files:', missingFiles.join(', '))
     process.exit(1)
   }
