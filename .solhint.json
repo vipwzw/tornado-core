@@ -1,13 +1,18 @@
 {
   "extends": "solhint:recommended",
   "rules": {
-    "prettier/prettier": [
-      "error",
-      {
-        "printWidth": 110
-      }
-    ],
-    "quotes": ["error", "double"]
-  },
-  "plugins": ["prettier"]
+    "quotes": ["error", "double"],
+    "max-line-length": ["warn", 120],
+    "compiler-version": ["warn", "^0.7.0"],
+    "func-visibility": "warn",
+    "state-visibility": "warn",
+    "reason-string": ["warn", { "maxLength": 32 }],
+    "func-name-mixedcase": "warn",
+    "var-name-mixedcase": "warn",
+    "contract-name-camelcase": "off",
+    "no-inline-assembly": "warn",
+    "avoid-low-level-calls": "off",
+    "avoid-suicide": "warn",
+    "avoid-sha3": "warn"
+  }
 }

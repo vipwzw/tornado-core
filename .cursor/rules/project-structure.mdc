@@ -1,0 +1,36 @@
+---
+alwaysApply: true
+---
+
+# Tornado Core Project Structure
+
+This is a privacy-focused cryptocurrency mixing protocol built with zero-knowledge proofs. The project structure is organized as follows:
+
+## Core Components
+
+- **Circuits** (`circuits/`): Zero-knowledge proof circuits written in Circom
+  - [merkleTree.circom](mdc:circuits/merkleTree.circom) - Merkle tree implementation for privacy
+  - [withdraw.circom](mdc:circuits/withdraw.circom) - Withdrawal proof circuit
+
+- **Smart Contracts** (`contracts/`): Solidity contracts for the protocol
+  - [Tornado.sol](mdc:contracts/Tornado.sol) - Main tornado contract
+  - [ETHTornado.sol](mdc:contracts/ETHTornado.sol) - ETH-specific tornado implementation
+  - [ERC20Tornado.sol](mdc:contracts/ERC20Tornado.sol) - ERC20 token tornado implementation
+  - [MerkleTreeWithHistory.sol](mdc:contracts/MerkleTreeWithHistory.sol) - On-chain merkle tree
+
+- **Source Code** (`src/`): JavaScript utilities and CLI
+  - [cli.js](mdc:src/cli.js) - Command-line interface
+  - [config.js](mdc:src/config.js) - Configuration settings
+  - [minimal-demo.js](mdc:src/minimal-demo.js) - Demo implementation
+
+- **Deployment** (`migrations/`, `scripts/`): Deployment and build scripts
+  - [deploy.js](mdc:deploy.js) - Main deployment script
+  - [truffle-config.js](mdc:truffle-config.js) - Truffle configuration
+
+## Key Concepts
+
+This project implements a non-custodial anonymous transaction protocol using:
+- Zero-knowledge proofs for privacy
+- Merkle trees for efficient proof verification
+- Smart contracts for trustless operation
+- Support for both ETH and ERC20 tokens

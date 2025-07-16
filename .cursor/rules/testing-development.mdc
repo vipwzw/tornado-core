@@ -1,0 +1,47 @@
+---
+description: Testing and development guidelines for tornado protocol
+---
+
+# Testing and Development Guidelines
+
+## Test Structure
+
+### Contract Tests
+- **ETH Tornado**: [ETHTornado.test.js](mdc:test/ETHTornado.test.js) - Tests ETH mixing functionality
+- **ERC20 Tornado**: [ERC20Tornado.test.js](mdc:test/ERC20Tornado.test.js) - Tests ERC20 token mixing
+- **Merkle Tree**: [MerkleTreeWithHistory.test.js](mdc:test/MerkleTreeWithHistory.test.js) - Tests merkle tree operations
+
+### Mock Contracts
+Located in [contracts/Mocks/](mdc:contracts/Mocks/):
+- [ERC20Mock.sol](mdc:contracts/Mocks/ERC20Mock.sol) - Mock ERC20 for testing
+- [BadRecipient.sol](mdc:contracts/Mocks/BadRecipient.sol) - Tests edge cases
+- [MerkleTreeWithHistoryMock.sol](mdc:contracts/Mocks/MerkleTreeWithHistoryMock.sol) - Merkle tree testing
+
+## Development Workflow
+
+### Setup
+1. Install dependencies: `npm install`
+2. Compile contracts: `truffle compile`
+3. Download proving keys: `node scripts/downloadKeys.js`
+4. Compile circuits: `node scripts/compileHasher.js`
+
+### Testing
+- Run all tests: `truffle test`
+- Run specific test: `truffle test test/ETHTornado.test.js`
+- Local development: Use [ganacheHelper.js](mdc:scripts/ganacheHelper.js)
+
+### Deployment
+- Configuration: [truffle-config.js](mdc:truffle-config.js)
+- Migration scripts: Run `truffle migrate`
+- Custom deployment: [deploy.js](mdc:deploy.js)
+
+## Key Testing Patterns
+
+- **Proof Generation**: Tests generate valid zk-proofs
+- **Nullifier Validation**: Ensures no double-spending
+- **Merkle Tree Updates**: Verifies tree state consistency
+- **Edge Cases**: Tests with mock contracts for error conditions
+
+## Configuration
+
+Network and contract settings are in [config.js](mdc:src/config.js). Update this file for different deployment environments.

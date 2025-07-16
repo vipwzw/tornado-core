@@ -1,0 +1,41 @@
+---
+description: Privacy and zero-knowledge concepts in tornado protocol
+---
+
+# Privacy and Zero-Knowledge Concepts
+
+## Core Privacy Mechanisms
+
+### Commitment-Nullifier Scheme
+- **Commitment**: Secret value committed to merkle tree during deposit
+- **Nullifier**: Unique identifier derived from commitment to prevent double-spending
+- **Secret**: Private key used to generate both commitment and nullifier
+
+### Zero-Knowledge Proofs
+- **Proving**: Client generates proof they know secret without revealing it
+- **Verification**: On-chain verification of proof validity
+- **Circuits**: [withdraw.circom](mdc:circuits/withdraw.circom) defines proof constraints
+
+### Merkle Tree Privacy
+- **Anonymity Set**: All previous deposits form the anonymity set
+- **Membership Proof**: Prove deposit exists without revealing which one
+- **Tree Structure**: [MerkleTreeWithHistory.sol](mdc:contracts/MerkleTreeWithHistory.sol) maintains tree state
+
+## Protocol Flow
+
+1. **Deposit**: User commits secret to merkle tree via [ETHTornado.sol](mdc:contracts/ETHTornado.sol) or [ERC20Tornado.sol](mdc:contracts/ERC20Tornado.sol)
+2. **Wait**: Time passes, anonymity set grows
+3. **Withdraw**: User generates zk-proof they know a secret in the tree
+4. **Verification**: Contract verifies proof and checks nullifier hasn't been used
+
+## Security Properties
+
+- **Anonymity**: Cannot link deposits to withdrawals
+- **Unlinkability**: Cannot determine if same user made multiple transactions
+- **Non-repudiation**: Cannot double-spend due to nullifier checking
+- **Completeness**: Valid proofs always verify
+- **Soundness**: Invalid proofs cannot be accepted
+
+## Implementation Details
+
+See [minimal-demo.js](mdc:src/minimal-demo.js) for example usage and [cli.js](mdc:src/cli.js) for full implementation.

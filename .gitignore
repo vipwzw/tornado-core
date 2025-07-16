@@ -98,3 +98,22 @@ ERC20Tornado_flat.sol
 ETHTornado_flat.sol
 
 coverage.json
+.DS_Store
+
+# Local CI files
+ganache.pid
+ganache.log
+perf-test.js
+gas-report.json
+release-notes.md
+*_flat.sol
+
+# act local GitHub Actions
+.secrets
+.env.act
+
+# Local artifacts
+/tmp/artifacts
+.cache/
+release-artifacts/
+*.bak

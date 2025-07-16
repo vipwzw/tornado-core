@@ -1,0 +1,14 @@
+# Act configuration file for local GitHub Actions testing
+# Use smaller, more reliable images
+-P ubuntu-latest=catthehacker/ubuntu:act-latest
+-P ubuntu-20.04=catthehacker/ubuntu:act-20.04
+-P ubuntu-18.04=catthehacker/ubuntu:act-18.04
+
+# Container configuration
+--container-daemon-socket unix:///var/run/docker.sock
+--artifact-server-path /tmp/artifacts
+
+# Environment variables for local testing
+--env ACT=true
+--env CI=true
+--env GITHUB_ACTIONS=true

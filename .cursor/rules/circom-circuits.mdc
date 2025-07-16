@@ -1,0 +1,35 @@
+---
+globs: *.circom
+---
+
+# Circom Circuit Guidelines
+
+## Circuit Architecture
+
+This project contains zero-knowledge proof circuits for privacy-preserving transactions:
+
+- **Merkle Tree Circuit**: [merkleTree.circom](mdc:circuits/merkleTree.circom) - Proves membership in merkle tree
+- **Withdraw Circuit**: [withdraw.circom](mdc:circuits/withdraw.circom) - Proves valid withdrawal without revealing sender
+
+## Key Concepts
+
+- **Zero-Knowledge Proofs**: Circuits generate proofs without revealing private information
+- **Merkle Tree Proofs**: Prove inclusion in the anonymity set without revealing position
+- **Commitment Scheme**: Uses Pedersen commitments for privacy
+- **Nullifier Generation**: Prevents double-spending through unique nullifiers
+
+## Circuit Components
+
+- **Inputs**: Public and private inputs for proof generation
+- **Constraints**: Mathematical constraints that must be satisfied
+- **Outputs**: Public outputs that can be verified on-chain
+
+## Integration
+
+- Circuits are compiled to generate proving/verification keys
+- Verification keys are used in [Verifier.sol](mdc:contracts/Verifier.sol)
+- Proving keys are used in client-side applications for proof generation
+
+## Build Process
+
+Circuits are compiled using the [compileHasher.js](mdc:scripts/compileHasher.js) script.

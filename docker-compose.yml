@@ -1,0 +1,69 @@
+version: '3.8'
+
+services:
+  tornado-ci:
+    image: node:18-bullseye
+    working_dir: /app
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - tornado_cache:/app/.cache
+    environment:
+      - NODE_ENV=test
+      - CI=true
+    command: >
+      bash -c "
+        echo '🐳 Starting Tornado Core CI in Docker...' &&
+        apt-get update -qq &&
+        apt-get install -y -qq python3 make g++ &&
+        npm run ci:local
+      "
+    networks:
+      - tornado_network
+
+  ganache:
+    image: trufflesuite/ganache-cli:latest
+    ports:
+      - '8545:8545'
+    command: >
+      --deterministic
+      --accounts 10
+      --host 0.0.0.0
+      --port 8545
+      --networkId 5777
+      --gasLimit 10000000
+      --gasPrice 1000000000
+    networks:
+      - tornado_network
+
+  # 用于性能测试的专用服务
+  performance-test:
+    image: node:18-bullseye
+    working_dir: /app
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - tornado_cache:/app/.cache
+    environment:
+      - NODE_ENV=test
+      - PERFORMANCE_MODE=true
+    depends_on:
+      - ganache
+    command: >
+      bash -c "
+        echo '⚡ Running performance tests...' &&
+        npm run ci:setup &&
+        npm run ci:build &&
+        sleep 10 &&
+        npm run migrate:dev &&
+        echo 'Performance tests completed'
+      "
+    networks:
+      - tornado_network
+
+volumes:
+  tornado_cache:
+
+networks:
+  tornado_network:
+    driver: bridge

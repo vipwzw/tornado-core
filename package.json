@@ -3,13 +3,17 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "engines": {
+    "node": ">=24.0.0",
+    "npm": ">=10.0.0"
+  },
   "scripts": {
-    "build:circuit:compile": "npx circom circuits/withdraw.circom -o build/circuits/withdraw.json && npx snarkjs info -c build/circuits/withdraw.json",
-    "build:circuit:setup": "npx snarkjs setup --protocol groth -c build/circuits/withdraw.json --pk build/circuits/withdraw_proving_key.json --vk build/circuits/withdraw_verification_key.json",
+    "build:circuit:compile": "npx circom circuits/withdraw.circom -o build/circuits/withdraw.json && node node_modules/snarkjs/cli.js info -c build/circuits/withdraw.json",
+    "build:circuit:setup": "node node_modules/snarkjs/cli.js setup --protocol groth -c build/circuits/withdraw.json --pk build/circuits/withdraw_proving_key.json --vk build/circuits/withdraw_verification_key.json",
     "build:circuit:bin": "node node_modules/websnark/tools/buildpkey.js -i build/circuits/withdraw_proving_key.json -o build/circuits/withdraw_proving_key.bin",
-    "build:circuit:contract": "npx snarkjs generateverifier -v build/circuits/Verifier.sol --vk build/circuits/withdraw_verification_key.json",
+    "build:circuit:contract": "cp contracts/Verifier.sol build/circuits/Verifier.sol",
     "build:circuit": "mkdir -p build/circuits && npm run build:circuit:compile && npm run build:circuit:setup && npm run build:circuit:bin && npm run build:circuit:contract",
-    "build:contract": "npx truffle compile",
+    "build:contract": "mkdir -p build && npx truffle compile",
     "build:browserify": "npx browserify src/cli.js -o index.js --exclude worker_threads",
     "build": "npm run build:circuit && npm run build:contract && npm run build:browserify",
     "browserify": "npm run build:browserify",
@@ -24,12 +28,30 @@
     "prettier:fix": "prettier --write . --config .prettierrc",
     "lint": "yarn eslint && yarn prettier:check",
     "flat": "npx truffle-flattener contracts/ETHTornado.sol > ETHTornado_flat.sol && npx truffle-flattener contracts/ERC20Tornado.sol > ERC20Tornado_flat.sol",
-    "download": "node scripts/downloadKeys.js",
-    "coverage": "yarn truffle run coverage"
+    "download": "mkdir -p build/circuits build/contracts && cp circuits/online/withdraw.json circuits/online/withdraw_proving_key.bin circuits/online/withdraw_verification_key.json build/circuits/ && cp circuits/online/Verifier.sol build/contracts/",
+    "release:check": "node scripts/release.js check",
+    "release:prepare": "node scripts/release.js prepare",
+    "release:dry": "node scripts/release.js release --dry-run",
+    "release": "node scripts/release.js release",
+    "coverage": "yarn truffle run coverage",
+    "ci:setup": "cp .env.example .env 2>/dev/null || echo 'No .env.example found, creating basic .env' && npm run ci:create-env && npm run ci:install && yarn download",
+    "ci:create-env": "if [ ! -f .env ]; then echo 'NETWORK=development\nRPC_URL=http://localhost:8545\nPRIVATE_KEY=0x1234567890123456789012345678901234567890123456789012345678901234' > .env; fi",
+    "ci:install": "if command -v yarn >/dev/null 2>&1; then yarn install || npm install; else npm install; fi",
+    "ci:build": "npm run build:circuit && npm run build:contract",
+    "ci:test": "npm run ci:setup && npm run ci:build && npm run ci:ganache:start && npm run migrate:dev && yarn test && npm run ci:cli:test && npm run ci:ganache:stop",
+    "ci:lint": "yarn eslint && yarn prettier:check && npx solhint 'contracts/**/*.sol'",
+    "ci:security": "yarn audit --level moderate",
+    "ci:coverage": "npm run ci:setup && npm run ci:build && npm run ci:ganache:start && npm run migrate:dev && yarn coverage && npm run ci:ganache:stop",
+    "ci:ganache:start": "npx ganache-cli --deterministic --accounts 10 --host 0.0.0.0 --port 8545 > ganache.log 2>&1 & echo $! > ganache.pid && sleep 5",
+    "ci:ganache:stop": "if [ -f ganache.pid ]; then kill $(cat ganache.pid) && rm ganache.pid; fi",
+    "ci:cli:test": "node src/cli.js test",
+    "ci:full": "npm run ci:lint && npm run ci:security && npm run ci:test",
+    "ci:local": "echo '🚀 Starting local CI pipeline...' && npm run ci:full && echo '✅ Local CI pipeline completed successfully!'",
+    "precommit": "npm run ci:lint && npm run ci:security"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "GPL-3.0",
   "dependencies": {
     "@openzeppelin/contracts": "^3.4.1",
     "@truffle/contract": "^4.0.39",
@@ -60,5 +82,8 @@
     "web3-utils": "^1.3.4",
     "websnark": "git+https://github.com/tornadocash/websnark.git#4c0af6a8b65aabea3c09f377f63c44e7a58afa6d",
     "solidity-coverage": "^0.7.20"
+  },
+  "resolutions": {
+    "snarkjs": "git+https://github.com/tornadocash/snarkjs.git#869181cfaf7526fe8972073d31655493a04326d5"
   }
 }

@@ -13,7 +13,7 @@ const bigInt = snarkjs.bigInt
 const merkleTree = require('fixed-merkle-tree')
 const Web3 = require('web3')
 const buildGroth16 = require('websnark/src/groth16')
-const websnarkUtils = require('websnark/src/utils')
+const websnarkUtils = require('../test/websnark-utils')
 const { toWei, fromWei, toBN, BN } = require('web3-utils')
 const config = require('./config')
 const program = require('commander')
@@ -337,10 +337,10 @@ function toDecimals(value, decimals, fixed) {
 
 function getCurrentNetworkName() {
   switch (netId) {
-  case 1:
-    return ''
-  case 42:
-    return 'kovan.'
+    case 1:
+      return ''
+    case 42:
+      return 'kovan.'
   }
 
 }
@@ -355,17 +355,17 @@ function calculateFee({ gasPrices, currency, amount, refund, ethPrices, relayerS
   const expense = toBN(toWei(gasPrices.fast.toString(), 'gwei')).mul(toBN(5e5))
   let desiredFee
   switch (currency) {
-  case 'eth': {
-    desiredFee = expense.add(feePercent)
-    break
-  }
-  default: {
-    desiredFee = expense.add(toBN(refund))
-      .mul(toBN(10 ** decimals))
-      .div(toBN(ethPrices[currency]))
-    desiredFee = desiredFee.add(feePercent)
-    break
-  }
+    case 'eth': {
+      desiredFee = expense.add(feePercent)
+      break
+    }
+    default: {
+      desiredFee = expense.add(toBN(refund))
+        .mul(toBN(10 ** decimals))
+        .div(toBN(ethPrices[currency]))
+      desiredFee = desiredFee.add(feePercent)
+      break
+    }
   }
   return desiredFee
 }

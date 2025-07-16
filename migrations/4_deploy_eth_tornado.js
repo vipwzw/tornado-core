@@ -1,5 +1,5 @@
 /* global artifacts */
-require('dotenv').config({ path: '../.env' })
+require('dotenv').config({ path: './.env' })
 const ETHTornado = artifacts.require('ETHTornado')
 const Verifier = artifacts.require('Verifier')
 const Hasher = artifacts.require('Hasher')

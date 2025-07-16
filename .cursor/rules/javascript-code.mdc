@@ -1,0 +1,41 @@
+---
+globs: *.js
+---
+
+# JavaScript Code Guidelines
+
+## Project Structure
+
+This project uses JavaScript for:
+- **CLI Tools**: [cli.js](mdc:src/cli.js) - Command-line interface for deposits/withdrawals
+- **Configuration**: [config.js](mdc:src/config.js) - Network and contract configurations
+- **Demonstrations**: [minimal-demo.js](mdc:src/minimal-demo.js) - Example usage
+- **Deployment**: [deploy.js](mdc:deploy.js) - Contract deployment script
+
+## Key Libraries
+
+- **Truffle**: Smart contract development framework
+- **Web3.js**: Ethereum JavaScript API
+- **Circomlib**: Circom circuit library for zk-proofs
+- **snarkjs**: JavaScript implementation of zk-SNARKs
+
+## Testing Framework
+
+- Uses Mocha/Chai for testing
+- Tests are in the `test/` directory
+- Integration tests for contract functionality
+- Mock contracts in [contracts/Mocks/](mdc:contracts/Mocks/)
+
+## Build Scripts
+
+- **Hasher Compilation**: [compileHasher.js](mdc:scripts/compileHasher.js) - Compiles Poseidon hasher
+- **Key Download**: [downloadKeys.js](mdc:scripts/downloadKeys.js) - Downloads proving/verification keys
+- **Ganache Helper**: [ganacheHelper.js](mdc:scripts/ganacheHelper.js) - Local development utilities
+
+## Migration Scripts
+
+Truffle migrations in `migrations/` directory:
+- [2_deploy_hasher.js](mdc:migrations/2_deploy_hasher.js)
+- [3_deploy_verifier.js](mdc:migrations/3_deploy_verifier.js)
+- [4_deploy_eth_tornado.js](mdc:migrations/4_deploy_eth_tornado.js)
+- [5_deploy_erc20_tornado.js](mdc:migrations/5_deploy_erc20_tornado.js)
